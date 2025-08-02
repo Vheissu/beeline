@@ -4,6 +4,7 @@
       "aliases": [],
       "args": {
         "action": {
+          "default": "list",
           "description": "action to perform",
           "name": "action",
           "options": [
@@ -12,7 +13,7 @@
             "info",
             "remove"
           ],
-          "required": true
+          "required": false
         },
         "account": {
           "description": "account name",
@@ -127,6 +128,7 @@
       "aliases": [],
       "args": {
         "action": {
+          "default": "list",
           "description": "action to perform",
           "name": "action",
           "options": [
@@ -135,7 +137,7 @@
             "remove",
             "set-default"
           ],
-          "required": true
+          "required": false
         },
         "account": {
           "description": "account name",
@@ -333,6 +335,46 @@
         "dist",
         "commands",
         "transfer.js"
+      ]
+    },
+    "ui": {
+      "aliases": [],
+      "args": {},
+      "description": "Launch the visual terminal interface for Beeline wallet",
+      "examples": [
+        "$ beeline ui",
+        "$ beeline ui --mock"
+      ],
+      "flags": {
+        "mock": {
+          "char": "m",
+          "description": "use mock data for testing",
+          "name": "mock",
+          "allowNo": false,
+          "type": "boolean"
+        },
+        "node": {
+          "char": "n",
+          "description": "RPC node to use",
+          "name": "node",
+          "hasDynamicHelp": false,
+          "multiple": false,
+          "type": "option"
+        }
+      },
+      "hasDynamicHelp": false,
+      "hiddenAliases": [],
+      "id": "ui",
+      "pluginAlias": "beeline-cli",
+      "pluginName": "beeline-cli",
+      "pluginType": "core",
+      "strict": true,
+      "enableJsonFlag": false,
+      "isESM": false,
+      "relativePath": [
+        "dist",
+        "commands",
+        "ui.js"
       ]
     },
     "version": {
