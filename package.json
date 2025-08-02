@@ -1,0 +1,88 @@
+{
+  "name": "beeline-cli",
+  "version": "0.1.0",
+  "description": "A cyberpunk terminal wallet for the Hive blockchain - type, sign, rule the chain",
+  "main": "dist/index.js",
+  "bin": {
+    "beeline": "./bin/run"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest",
+    "postpack": "rm -f oclif.manifest.json",
+    "prepack": "npm run build && oclif manifest"
+  },
+  "keywords": [
+    "hive",
+    "blockchain",
+    "wallet",
+    "cli",
+    "terminal",
+    "cyberpunk",
+    "crypto"
+  ],
+  "author": "Dwayne Charrington",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "dependencies": {
+    "@hiveio/dhive": "^1.2.7",
+    "@oclif/core": "^4.0.26",
+    "@oclif/plugin-help": "^6.2.16",
+    "@types/react": "^19.1.9",
+    "boxen": "^7.1.1",
+    "chalk": "^4.1.2",
+    "crypto-js": "^4.2.0",
+    "figlet": "^1.8.0",
+    "fs-extra": "^11.2.0",
+    "gradient-string": "^2.0.2",
+    "ink": "^6.1.0",
+    "inquirer": "^12.1.0",
+    "keytar": "^7.9.0",
+    "nanospinner": "^1.1.0",
+    "ora": "^8.1.1",
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/figlet": "^1.7.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/gradient-string": "^1.1.6",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "eslint": "^9.17.0",
+    "oclif": "^4.15.22",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "oclif": {
+    "bin": "beeline",
+    "dirname": "beeline",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "wallet": {
+        "description": "Wallet operations"
+      },
+      "node": {
+        "description": "Node management"
+      },
+      "keys": {
+        "description": "Key management"
+      }
+    }
+  }
+}

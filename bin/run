@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+// Suppress all warnings for cleaner output
+process.env.NODE_NO_WARNINGS = '1'
+process.removeAllListeners('warning')
+
+const oclif = require('@oclif/core')
+
+oclif.run().then(require('@oclif/core/handle'), require('@oclif/core/handle'))
