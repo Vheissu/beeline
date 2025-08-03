@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner } from '../utils/neon.js';
+import { getTheme, neonSymbols, playMatrixRain, getCurrentThemeName } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 
@@ -40,6 +40,7 @@ export default class Balance extends Command {
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Balance);
     
+    const theme = await getTheme();
     const keyManager = new KeyManager();
     await keyManager.initialize();
     
@@ -54,19 +55,19 @@ export default class Balance extends Command {
     if (!account) {
       account = keyManager.getDefaultAccount();
       if (!account) {
-        console.log(neonChalk.warning(`${neonSymbols.cross} No account specified and no default account set`));
-        console.log(neonChalk.info('Import a key first with: ') + neonChalk.highlight('beeline keys import <account> <role>'));
+        console.log(theme.chalk.warning(`${neonSymbols.cross} No account specified and no default account set`));
+        console.log(theme.chalk.info('Import a key first with: ') + theme.chalk.highlight('beeline keys import <account> <role>'));
         return;
       }
     }
     
-    console.log(neonChalk.glow(`${neonSymbols.diamond} Fetching balance for ${neonChalk.highlight('@' + account)}...`));
+    console.log(theme.chalk.glow(`${neonSymbols.diamond} Fetching balance for ${theme.chalk.highlight('@' + account)}...`));
     
     if (flags.mock) {
-      return this.showMockBalance(account, flags.format);
+      return await this.showMockBalance(account, flags.format);
     }
     
-    const spinner = neonSpinner('Connecting to Hive blockchain');
+    const spinner = theme.spinner('Connecting to Hive blockchain');
     
     try {
       const hiveClient = new HiveClient(keyManager, flags.node);
@@ -96,37 +97,38 @@ export default class Balance extends Command {
         return num.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
       };
       
-      // Cyberpunk table display
+      // Themed table display
       const balanceDisplay = [
-        `${neonChalk.cyan('HIVE')}     ${neonSymbols.arrow} ${neonChalk.white(formatBalance(balances.hive))} HIVE`,
-        `${neonChalk.magenta('HBD')}      ${neonSymbols.arrow} ${neonChalk.white(formatBalance(balances.hbd))} HBD`,
-        `${neonChalk.electric('HP')}       ${neonSymbols.arrow} ${neonChalk.white(formatBalance(balances.hp))} HP`,
+        `${theme.chalk.success('HIVE')}     ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.hive))} HIVE`,
+        `${theme.chalk.accent('HBD')}      ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.hbd))} HBD`,
+        `${theme.chalk.glow('HP')}       ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.hp))} HP`,
         ``,
-        `${neonChalk.darkCyan('SAVINGS')}`,
-        `${neonChalk.cyan('├─ HIVE')} ${neonSymbols.arrow} ${neonChalk.white(formatBalance(balances.savings_hive))} HIVE`,
-        `${neonChalk.magenta('└─ HBD')}  ${neonSymbols.arrow} ${neonChalk.white(formatBalance(balances.savings_hbd))} HBD`
+        `${theme.chalk.info('SAVINGS')}`,
+        `${theme.chalk.success('├─ HIVE')} ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.savings_hive))} HIVE`,
+        `${theme.chalk.accent('└─ HBD')}  ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.savings_hbd))} HBD`
       ].join('\n');
       
-      console.log(createNeonBox(balanceDisplay, `WALLET ${neonSymbols.star} @${account.toUpperCase()}`));
+      console.log(theme.createBox(balanceDisplay, `WALLET ${neonSymbols.star} @${account.toUpperCase()}`));
       console.log('');
       
       // Status indicators
-      console.log(neonChalk.success(`${neonSymbols.check} Connected to Hive network`));
-      console.log(neonChalk.info(`${neonSymbols.bullet} Node: ${nodeInfo.url}`));
-      console.log(neonChalk.info(`${neonSymbols.bullet} Block: #${nodeInfo.lastBlockNum.toLocaleString()}`));
-      console.log(neonChalk.darkCyan(`${neonSymbols.bullet} Last updated: ${new Date().toLocaleTimeString()}`));
+      console.log(theme.chalk.success(`${neonSymbols.check} Connected to Hive network`));
+      console.log(theme.chalk.info(`${neonSymbols.bullet} Node: ${nodeInfo.url}`));
+      console.log(theme.chalk.info(`${neonSymbols.bullet} Block: #${nodeInfo.lastBlockNum.toLocaleString()}`));
+      console.log(theme.chalk.info(`${neonSymbols.bullet} Last updated: ${new Date().toLocaleTimeString()}`));
       
     } catch (error) {
       clearInterval(spinner);
       process.stdout.write('\r' + ' '.repeat(80) + '\r');
       
-      console.log(neonChalk.error(`${neonSymbols.cross} Failed to fetch balance: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      console.log(theme.chalk.error(`${neonSymbols.cross} Failed to fetch balance: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
-      console.log(neonChalk.info('Try using mock data: ') + neonChalk.highlight(`beeline balance ${account} --mock`));
+      console.log(theme.chalk.info('Try using mock data: ') + theme.chalk.highlight(`beeline balance ${account} --mock`));
     }
   }
   
-  private showMockBalance(account: string, format?: string): void {
+  private async showMockBalance(account: string, format?: string): Promise<void> {
+    const theme = await getTheme();
     const balances = {
       hive: '1,234.567',
       hbd: '89.123', 
@@ -148,19 +150,19 @@ export default class Balance extends Command {
     }
     
     const balanceDisplay = [
-      `${neonChalk.cyan('HIVE')}     ${neonSymbols.arrow} ${neonChalk.white(balances.hive)} HIVE`,
-      `${neonChalk.magenta('HBD')}      ${neonSymbols.arrow} ${neonChalk.white(balances.hbd)} HBD`,
-      `${neonChalk.electric('HP')}       ${neonSymbols.arrow} ${neonChalk.white(balances.hp)} HP`,
+      `${theme.chalk.success('HIVE')}     ${neonSymbols.arrow} ${theme.chalk.highlight(balances.hive)} HIVE`,
+      `${theme.chalk.accent('HBD')}      ${neonSymbols.arrow} ${theme.chalk.highlight(balances.hbd)} HBD`,
+      `${theme.chalk.glow('HP')}       ${neonSymbols.arrow} ${theme.chalk.highlight(balances.hp)} HP`,
       ``,
-      `${neonChalk.darkCyan('SAVINGS')}`,
-      `${neonChalk.cyan('├─ HIVE')} ${neonSymbols.arrow} ${neonChalk.white(balances.savings_hive)} HIVE`,
-      `${neonChalk.magenta('└─ HBD')}  ${neonSymbols.arrow} ${neonChalk.white(balances.savings_hbd)} HBD`
+      `${theme.chalk.info('SAVINGS')}`,
+      `${theme.chalk.success('├─ HIVE')} ${neonSymbols.arrow} ${theme.chalk.highlight(balances.savings_hive)} HIVE`,
+      `${theme.chalk.accent('└─ HBD')}  ${neonSymbols.arrow} ${theme.chalk.highlight(balances.savings_hbd)} HBD`
     ].join('\n');
     
-    console.log(createNeonBox(balanceDisplay, `WALLET ${neonSymbols.star} @${account.toUpperCase()} ${neonChalk.warning('(MOCK)')}`));
+    console.log(theme.createBox(balanceDisplay, `WALLET ${neonSymbols.star} @${account.toUpperCase()} ${theme.chalk.warning('(MOCK)')}`));
     console.log('');
     
-    console.log(neonChalk.warning(`${neonSymbols.star} Mock data displayed`));
-    console.log(neonChalk.info('Remove --mock flag for real blockchain data'));
+    console.log(theme.chalk.warning(`${neonSymbols.star} Mock data displayed`));
+    console.log(theme.chalk.info('Remove --mock flag for real blockchain data'));
   }
 }

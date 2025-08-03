@@ -1,6 +1,7 @@
 import * as blessed from 'blessed';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
+import { getTheme, getCurrentThemeName, Theme } from '../utils/neon.js';
 
 export interface UIOptions {
   mock?: boolean;
@@ -13,6 +14,7 @@ export class TerminalUI {
   private currentScreen: string = 'dashboard';
   private mock: boolean;
   private node?: string;
+  private theme: Theme | null = null;
   
   // UI Elements
   private headerBox: blessed.Widgets.BoxElement;
@@ -33,12 +35,69 @@ export class TerminalUI {
       fullUnicode: true
     });
 
-    this.setupUI();
-    this.setupKeyBindings();
-    this.showDashboard();
+    this.initializeAndSetup();
   }
 
-  private setupUI(): void {
+  private async initializeAndSetup(): Promise<void> {
+    await this.initializeTheme();
+    await this.setupUI();
+    this.setupKeyBindings();
+    await this.showDashboard();
+  }
+
+  private async initializeTheme(): Promise<void> {
+    this.theme = await getTheme();
+  }
+
+  private async getBlessedColors() {
+    if (!this.theme) {
+      // Fallback to default colors
+      return {
+        primary: 'cyan',
+        secondary: 'magenta', 
+        success: 'green',
+        warning: 'yellow',
+        error: 'red',
+        info: 'cyan',
+        accent: 'magenta',
+        border: 'cyan',
+        text: 'white'
+      };
+    }
+
+    const themeName = await getCurrentThemeName();
+
+    if (themeName === 'matrix') {
+      return {
+        primary: 'green',
+        secondary: 'green',
+        success: 'green',
+        warning: 'green', 
+        error: 'green',
+        info: 'green',
+        accent: 'green',
+        border: 'green',
+        text: 'white'
+      };
+    } else {
+      // Cyberpunk theme
+      return {
+        primary: 'cyan',
+        secondary: 'magenta',
+        success: 'green',
+        warning: 'yellow',
+        error: 'red', 
+        info: 'cyan',
+        accent: 'magenta',
+        border: 'cyan',
+        text: 'white'
+      };
+    }
+  }
+
+  private async setupUI(): Promise<void> {
+    const colors = await this.getBlessedColors();
+    
     // Header
     this.headerBox = blessed.box({
       top: 0,
@@ -51,9 +110,9 @@ export class TerminalUI {
         type: 'line'
       },
       style: {
-        fg: 'cyan',
+        fg: colors.primary,
         border: {
-          fg: 'cyan'
+          fg: colors.border
         }
       }
     });
@@ -69,9 +128,9 @@ export class TerminalUI {
         type: 'line'
       },
       style: {
-        fg: 'white',
+        fg: colors.text,
         border: {
-          fg: 'magenta'
+          fg: colors.secondary
         }
       }
     });
@@ -88,9 +147,9 @@ export class TerminalUI {
         type: 'line'
       },
       style: {
-        fg: 'yellow',
+        fg: colors.warning,
         border: {
-          fg: 'yellow'
+          fg: colors.warning
         }
       }
     });
@@ -110,12 +169,12 @@ export class TerminalUI {
         type: 'line'
       },
       style: {
-        fg: 'white',
+        fg: colors.text,
         border: {
-          fg: 'cyan'
+          fg: colors.primary
         },
         selected: {
-          bg: 'cyan',
+          bg: colors.primary,
           fg: 'black'
         }
       }
@@ -134,9 +193,9 @@ export class TerminalUI {
         type: 'line'
       },
       style: {
-        fg: 'white',
+        fg: colors.text,
         border: {
-          fg: 'green'
+          fg: colors.success
         }
       }
     });
@@ -193,21 +252,23 @@ export class TerminalUI {
     });
   }
 
-  private updateHeader(title: string): void {
-    const mode = this.mock ? '{yellow-fg}(MOCK){/yellow-fg}' : '{green-fg}(LIVE){/green-fg}';
-    const headerContent = `{bold}{cyan-fg}▓▓ BEELINE WALLET ▓▓{/cyan-fg}{/bold} → {magenta-fg}${title}{/magenta-fg} ${mode}`;
+  private async updateHeader(title: string): Promise<void> {
+    const colors = await this.getBlessedColors();
+    const mode = this.mock ? `{${colors.warning}-fg}(MOCK){/${colors.warning}-fg}` : `{${colors.success}-fg}(LIVE){/${colors.success}-fg}`;
+    const headerContent = `{bold}{${colors.primary}-fg}▓▓ BEELINE WALLET ▓▓{/${colors.primary}-fg}{/bold} → {${colors.accent}-fg}${title}{/${colors.accent}-fg} ${mode}`;
     this.headerBox.setContent(`  ${headerContent}  `);
   }
 
-  private updateFooter(controls: string): void {
-    const footerContent = `{bold}${controls}{/bold} | {yellow-fg}ESC/Q: Quit{/yellow-fg} | {cyan-fg}TAB: Focus{/cyan-fg}`;
+  private async updateFooter(controls: string): Promise<void> {
+    const colors = await this.getBlessedColors();
+    const footerContent = `{bold}${controls}{/bold} | {${colors.warning}-fg}ESC/Q: Quit{/${colors.warning}-fg} | {${colors.info}-fg}TAB: Focus{/${colors.info}-fg}`;
     this.footerBox.setContent(`  ${footerContent}  `);
   }
 
   private async showDashboard(): Promise<void> {
     this.currentScreen = 'dashboard';
-    this.updateHeader('DASHBOARD');
-    this.updateFooter('D: Dashboard | B: Balance | T: Transfer | A: Accounts | R: Refresh');
+    await this.updateHeader('DASHBOARD');
+    await this.updateFooter('D: Dashboard | B: Balance | T: Transfer | A: Accounts | R: Refresh');
 
     // Set menu items
     const menuItems = [
@@ -288,8 +349,8 @@ export class TerminalUI {
 
   private async showBalance(): Promise<void> {
     this.currentScreen = 'balance';
-    this.updateHeader('BALANCE');
-    this.updateFooter('R: Refresh | D: Dashboard | Arrow Keys: Navigate');
+    await this.updateHeader('BALANCE');
+    await this.updateFooter('R: Refresh | D: Dashboard | Arrow Keys: Navigate');
 
     const defaultAccount = this.keyManager.getDefaultAccount();
     if (!defaultAccount) {
@@ -362,8 +423,8 @@ export class TerminalUI {
 
   private async showTransfer(): Promise<void> {
     this.currentScreen = 'transfer';
-    this.updateHeader('TRANSFER');
-    this.updateFooter('D: Dashboard | Use CLI for transfers: beeline transfer');
+    await this.updateHeader('TRANSFER');
+    await this.updateFooter('D: Dashboard | Use CLI for transfers: beeline transfer');
 
     const transferInfo = `{magenta-fg}{bold}💸 TRANSFER FUNDS{/bold}{/magenta-fg}
 
@@ -394,8 +455,8 @@ export class TerminalUI {
 
   private async showAccounts(): Promise<void> {
     this.currentScreen = 'accounts';
-    this.updateHeader('ACCOUNTS');
-    this.updateFooter('D: Dashboard | R: Refresh | Arrow Keys: Navigate');
+    await this.updateHeader('ACCOUNTS');
+    await this.updateFooter('D: Dashboard | R: Refresh | Arrow Keys: Navigate');
 
     try {
       const accountList = await this.keyManager.listAccounts();

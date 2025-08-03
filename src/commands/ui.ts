@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
 import { KeyManager } from '../utils/crypto.js';
 import { TerminalUI } from '../ui/TerminalUI.js';
-import { neonChalk, neonSymbols } from '../utils/neon.js';
+import { getTheme, neonSymbols, getCurrentThemeName, playMatrixRain } from '../utils/neon.js';
 
 export default class UI extends Command {
   static override description = 'Launch the visual terminal interface for Beeline wallet';
@@ -26,6 +26,8 @@ export default class UI extends Command {
   public async run(): Promise<void> {
     const { flags } = await this.parse(UI);
     
+    const theme = await getTheme();
+    
     try {
       // Initialize KeyManager
       const keyManager = new KeyManager();
@@ -33,7 +35,7 @@ export default class UI extends Command {
       
       // Clear screen and show loading message
       console.clear();
-      console.log(neonChalk.glow(`${neonSymbols.diamond} Starting Beeline Terminal UI...`));
+      console.log(theme.chalk.glow(`${neonSymbols.diamond} Starting Beeline Terminal UI...`));
       
       // Create and run the terminal UI
       const ui = new TerminalUI(keyManager, {
@@ -45,12 +47,12 @@ export default class UI extends Command {
       
     } catch (error) {
       console.clear();
-      console.log(neonChalk.error(`${neonSymbols.cross} Failed to start UI: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      console.log(theme.chalk.error(`${neonSymbols.cross} Failed to start UI: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
-      console.log(neonChalk.info('You can still use individual commands:'));
-      console.log(neonChalk.highlight('beeline balance --help'));
-      console.log(neonChalk.highlight('beeline transfer --help'));
-      console.log(neonChalk.highlight('beeline accounts --help'));
+      console.log(theme.chalk.info('You can still use individual commands:'));
+      console.log(theme.chalk.highlight('beeline balance --help'));
+      console.log(theme.chalk.highlight('beeline transfer --help'));
+      console.log(theme.chalk.highlight('beeline accounts --help'));
     }
   }
 }

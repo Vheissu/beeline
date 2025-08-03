@@ -1,5 +1,5 @@
 import { Command } from '@oclif/core';
-import { neonChalk, neonSymbols, createNeonBox } from '../utils/neon.js';
+import { getTheme, neonSymbols, getCurrentThemeName, playMatrixRain } from '../utils/neon.js';
 
 export default class Version extends Command {
   static override description = 'Display version information with neon flair';
@@ -9,20 +9,21 @@ export default class Version extends Command {
   ];
 
   public async run(): Promise<void> {
+    const theme = await getTheme();
     const pkg = require('../../package.json');
     
     const versionInfo = [
-      `${neonChalk.glow('beeline-cli')} ${neonChalk.highlight('v' + pkg.version)}`,
+      `${theme.chalk.glow('beeline-cli')} ${theme.chalk.highlight('v' + pkg.version)}`,
       ``,
-      `${neonChalk.cyan('Node.js')}   ${neonSymbols.arrow} ${process.version}`,
-      `${neonChalk.magenta('Platform')} ${neonSymbols.arrow} ${process.platform} ${process.arch}`,
-      `${neonChalk.electric('Runtime')}  ${neonSymbols.arrow} ${process.title}`,
+      `${theme.chalk.success('Node.js')}   ${neonSymbols.arrow} ${process.version}`,
+      `${theme.chalk.accent('Platform')} ${neonSymbols.arrow} ${process.platform} ${process.arch}`,
+      `${theme.chalk.glow('Runtime')}  ${neonSymbols.arrow} ${process.title}`,
       ``,
-      `${neonChalk.darkCyan('Built for the neon grid')}`
+      `${theme.chalk.info('Built for the terminal matrix')}`
     ].join('\n');
     
-    console.log(createNeonBox(versionInfo, `${neonSymbols.star} SYSTEM INFO ${neonSymbols.star}`));
+    console.log(theme.createBox(versionInfo, `${neonSymbols.star} SYSTEM INFO ${neonSymbols.star}`));
     console.log('');
-    console.log(neonChalk.pulse('◆ Hive Terminal Wallet ◆ Neon Grid Edition ◆'));
+    console.log(theme.chalk.pulse('◆ Hive Terminal Wallet ◆ Multi-Theme Edition ◆'));
   }
 }
