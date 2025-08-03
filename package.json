@@ -10,7 +10,10 @@
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "lint": "eslint src --ext .ts",
-    "test": "vitest",
+    "test": "jest",
+    "test:run": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
     "postpack": "rm -f oclif.manifest.json",
     "prepack": "npm run build && oclif manifest"
   },
@@ -50,19 +53,22 @@
     "react": "^19.1.1"
   },
   "devDependencies": {
+    "@jest/globals": "^30.0.5",
     "@types/crypto-js": "^4.2.2",
     "@types/figlet": "^1.7.0",
     "@types/fs-extra": "^11.0.4",
     "@types/gradient-string": "^1.1.6",
     "@types/inquirer": "^9.0.7",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",
     "eslint": "^9.17.0",
+    "jest": "^30.0.5",
     "oclif": "^4.15.22",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   },
   "engines": {
     "node": ">=18.0.0"
