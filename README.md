@@ -19,7 +19,7 @@
 - 🔐 **Secure Key Management** - PIN-encrypted key storage with OS keychain integration
 - 🚀 **Password-Based Login** - Derive all keys from your master Hive password
 - 👥 **Multiple Account Support** - Manage unlimited Hive accounts in one wallet
-- 💰 **Real Blockchain Operations** - Check balances, send transfers, power operations
+- 💰 **Complete Blockchain Operations** - Transfers, power up/down, savings (20% APR), reward claiming, RC monitoring
 - 🛡️ **Security First** - Memory scrubbing, encrypted storage, zero-click paranoia
 - 📱 **Terminal Native** - Pure command line interface with neon styling
 - 🎮 **Mock Mode** - Test all operations safely before going live
@@ -221,6 +221,86 @@ beeline transfer @alice 1 HIVE --confirm        # Skip confirmation
 beeline transfer @alice 1 HIVE --node custom    # Custom node
 ```
 
+#### **Power Operations**
+```bash
+# Power up HIVE to Hive Power
+beeline powerup 10 HIVE                          # Power up to self
+beeline powerup 5.000 HIVE @alice                # Power up to another account
+beeline powerup 100 HIVE @alice --from @business # Power up from specific account
+
+# Power down Hive Power to liquid HIVE (13 weeks)
+beeline powerdown 10 HP                          # Power down in HP units
+beeline powerdown 5000 VESTS                     # Power down in VESTS units
+beeline powerdown 50 HP --from @alice            # Power down from specific account
+
+# Safe testing for power operations
+beeline powerup 10 HIVE --mock                   # Test power up safely
+beeline powerdown 10 HP --mock                   # Test power down safely
+```
+
+#### **Power Operation Commands**
+```bash
+# Power up (convert HIVE to Hive Power)
+beeline powerup 10 HIVE                          # Power up to self
+beeline powerup 5.000 HIVE @alice                # Power up to another account  
+beeline powerup 100 HIVE @alice --from @business # Power up from specific account
+beeline powerup 10 HIVE --mock                   # Test power up safely
+beeline powerup 10 HIVE --confirm                # Skip confirmation prompt
+
+# Power down (convert Hive Power to liquid HIVE over 13 weeks)
+beeline powerdown 10 HP                          # Power down 10 Hive Power
+beeline powerdown 5000 VESTS                     # Power down 5000 vesting shares
+beeline powerdown 50 HP --from @alice            # Power down from specific account
+beeline powerdown 10 HP --mock                   # Test power down safely
+beeline powerdown 10 HP --confirm                # Skip confirmation prompt
+```
+
+#### **Savings Operations (20% APR on HBD)**
+```bash
+# Deposit to savings (instant)
+beeline deposit 100 HBD                          # Deposit HBD for 20% APR
+beeline deposit 50 HIVE @alice                   # Deposit to another account
+beeline deposit 1000 HBD --from @business        # Deposit from specific account
+
+# Withdraw from savings (3-day processing)
+beeline withdraw 100 HBD                         # Withdraw from savings
+beeline withdraw 50 HIVE @alice                  # Withdraw to specific account
+beeline withdraw 200 HBD --from @business        # Withdraw from specific account
+
+# Safe testing for savings operations
+beeline deposit 100 HBD --mock                   # Test deposit safely
+beeline withdraw 50 HBD --mock                   # Test withdrawal safely
+```
+
+#### **Reward Management**
+```bash
+# Check available rewards
+beeline claim --show-only                        # Show pending rewards
+beeline claim alice --show-only                  # Check specific account
+
+# Claim all rewards (HIVE, HBD, VESTS)
+beeline claim                                    # Claim all rewards for default account
+beeline claim alice                              # Claim rewards for specific account
+beeline claim alice --all                        # Claim all without confirmation
+
+# Safe testing
+beeline claim --mock                             # Test reward claiming safely
+```
+
+#### **Resource Credits (RC) Monitoring**
+```bash
+# Check RC status
+beeline rc                                       # Check default account RC
+beeline rc alice                                 # Check specific account RC
+beeline rc alice --format json                   # JSON output format
+
+# Continuous monitoring
+beeline rc alice --watch                         # Watch RC levels live
+beeline rc alice --threshold 30                  # Custom warning threshold
+
+# Transaction capacity estimates included automatically
+```
+
 #### **Information Commands**
 ```bash
 beeline version                       # Version and system info
@@ -389,6 +469,21 @@ beeline transfer @bob 10 HIVE "test" --mock
 beeline transfer @alice 999 HIVE "big test" --mock --confirm
 beeline transfer @anyone 5 HBD "safe test" --from @fakeaccount --mock
 
+# Test power operations safely
+beeline powerup 100 HIVE --mock           # Test power up
+beeline powerdown 50 HP --mock            # Test power down
+
+# Test savings operations safely  
+beeline deposit 1000 HBD --mock           # Test savings deposit
+beeline withdraw 500 HIVE --mock          # Test savings withdrawal
+
+# Test reward claiming safely
+beeline claim --mock                      # Test reward claiming
+
+# Test RC monitoring (read-only operations)
+beeline rc alice                          # Always safe - just reads data
+beeline rc alice --format json           # JSON output
+
 # Test account management (always safe)
 beeline accounts list                      # No blockchain calls
 beeline keys list                         # Local vault only
@@ -403,6 +498,9 @@ beeline transfer @test 1 HIVE --mock      # Always works
 # 1. Start with mock mode to learn commands
 beeline balance alice --mock
 beeline transfer @bob 1 HIVE "learning" --mock
+beeline powerup 10 HIVE --mock             # Learn power operations
+beeline deposit 100 HBD --mock             # Learn savings operations
+beeline claim --mock                       # Learn reward claiming
 
 # 2. Test account management (always safe)
 beeline accounts list

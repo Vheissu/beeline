@@ -169,6 +169,38 @@ export class HiveClient {
     }
   }
 
+  async powerDown(
+    account: string,
+    amount: string,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(account, 'active', pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${account}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+      
+      const operation: any = [
+        'withdraw_vesting',
+        {
+          account,
+          vesting_shares: `${amount} VESTS`
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      
+      this.keyManager.scrubMemory(privateKeyWif);
+      
+      return result.id;
+    } catch (error) {
+      throw new Error(`Power down failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async getNodeInfo(): Promise<{ url: string; version: string; lastBlockNum: number }> {
     try {
       const config = await this.client.database.getConfig();
@@ -181,6 +213,130 @@ export class HiveClient {
       };
     } catch (error) {
       throw new Error(`Failed to get node info: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async convertHPToVests(hp: number): Promise<number> {
+    try {
+      const globalProps = await this.client.database.getDynamicGlobalProperties();
+      const totalVests = parseFloat(globalProps.total_vesting_shares.toString().split(' ')[0]);
+      const totalHive = parseFloat(globalProps.total_vesting_fund_hive.toString().split(' ')[0]);
+      
+      return (hp * totalVests) / totalHive;
+    } catch (error) {
+      throw new Error(`Failed to convert HP to VESTS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async transferToSavings(
+    from: string,
+    to: string,
+    amount: string,
+    currency: 'HIVE' | 'HBD',
+    memo: string = '',
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(from, 'active', pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${from}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+      
+      const operation: any = [
+        'transfer_to_savings',
+        {
+          from,
+          to,
+          amount: `${amount} ${currency}`,
+          memo
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      
+      this.keyManager.scrubMemory(privateKeyWif);
+      
+      return result.id;
+    } catch (error) {
+      throw new Error(`Transfer to savings failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async transferFromSavings(
+    from: string,
+    requestId: number,
+    to: string,
+    amount: string,
+    currency: 'HIVE' | 'HBD',
+    memo: string = '',
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(from, 'active', pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${from}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+      
+      const operation: any = [
+        'transfer_from_savings',
+        {
+          from,
+          request_id: requestId,
+          to,
+          amount: `${amount} ${currency}`,
+          memo
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      
+      this.keyManager.scrubMemory(privateKeyWif);
+      
+      return result.id;
+    } catch (error) {
+      throw new Error(`Transfer from savings failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async claimRewards(
+    account: string,
+    rewardHive: string,
+    rewardHbd: string,
+    rewardVests: string,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(account, 'posting', pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`Posting key not found for account ${account}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+      
+      const operation: any = [
+        'claim_reward_balance',
+        {
+          account,
+          reward_hive: `${rewardHive} HIVE`,
+          reward_hbd: `${rewardHbd} HBD`,
+          reward_vests: `${rewardVests} VESTS`
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      
+      this.keyManager.scrubMemory(privateKeyWif);
+      
+      return result.id;
+    } catch (error) {
+      throw new Error(`Claim rewards failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

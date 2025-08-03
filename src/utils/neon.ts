@@ -6,6 +6,7 @@ export const neonColors = {
   cyan: '#00FFFF',
   magenta: '#FF00FF', 
   electric: '#00FF00',
+  green: '#32CD32',
   purple: '#9D00FF',
   pink: '#FF1493',
   orange: '#FF4500',
@@ -27,6 +28,7 @@ export const neonChalk = {
   cyan: chalk.hex(neonColors.cyan),
   magenta: chalk.hex(neonColors.magenta),
   electric: chalk.hex(neonColors.electric),
+  green: chalk.hex(neonColors.green),
   purple: chalk.hex(neonColors.purple),
   pink: chalk.hex(neonColors.pink),
   orange: chalk.hex(neonColors.orange),
@@ -68,7 +70,8 @@ export const neonSymbols = {
   shade: '░',
   mediumShade: '▒',
   darkShade: '▓',
-  warning: '⚠'
+  warning: '⚠',
+  info: 'ℹ'
 };
 
 export async function createNeonBanner(text: string): Promise<string> {
