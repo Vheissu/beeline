@@ -146,7 +146,7 @@ const plugin = {
           return;
         }
         
-        context.success(`\\n🔮 HIVE ENGINE TOKENS - @${account.toUpperCase()}\\n`);
+        context.success(`\n🔮 HIVE ENGINE TOKENS - @${account.toUpperCase()}\n`);
         
         for (const token of activeBalances) {
           const balance = parseFloat(token.balance || 0);
@@ -154,19 +154,24 @@ const plugin = {
           const pendingUnstake = parseFloat(token.pendingUnstake || 0);
           
           if (balance > 0) {
-            context.log(`⚡ ${token.symbol.padEnd(12)} ${formatNumber(balance, 8).padStart(15)}`);
+            context.success(`⚡ ${token.symbol.padEnd(12)} ${formatNumber(balance, 8).padStart(15)}`);
           }
           
           if (stake > 0) {
-            context.log(`  📍 Staked      ${formatNumber(stake, 8).padStart(15)}`);
+            context.success(`  📍 Staked      ${formatNumber(stake, 8).padStart(15)}`);
           }
           
           if (pendingUnstake > 0) {
-            context.log(`  ⏳ Unstaking   ${formatNumber(pendingUnstake, 8).padStart(15)}`);
+            context.success(`  ⏳ Unstaking   ${formatNumber(pendingUnstake, 8).padStart(15)}`);
           }
         }
         
-        context.success(`\\n💫 Total: ${activeBalances.length} tokens with balances\\n`);
+        context.success(`\n💫 Total: ${activeBalances.length} tokens with balances\n`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to fetch tokens: ${error.message}`);
@@ -195,7 +200,7 @@ const plugin = {
           return;
         }
         
-        context.success(`\\n📊 ${tokenInfo.symbol} TOKEN INFO\\n`);
+        context.success(`\n📊 ${tokenInfo.symbol} TOKEN INFO\n`);
         context.log(`Name:           ${tokenInfo.name}`);
         context.log(`Symbol:         ${tokenInfo.symbol}`);
         context.log(`Precision:      ${tokenInfo.precision} decimals`);
@@ -204,15 +209,20 @@ const plugin = {
         context.log(`Issuer:         @${tokenInfo.issuer}`);
         
         if (tokenInfo.stakingEnabled) {
-          context.log(`\\n🥩 STAKING ENABLED`);
+          context.log(`\n🥩 STAKING ENABLED`);
           context.log(`Unstaking Cool: ${tokenInfo.unstakingCooldown} days`);
         }
         
         if (tokenInfo.url) {
-          context.log(`\\nWebsite:        ${tokenInfo.url}`);
+          context.log(`\nWebsite:        ${tokenInfo.url}`);
         }
         
         context.log('');
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to get token info: ${error.message}`);
@@ -242,13 +252,18 @@ const plugin = {
           return;
         }
         
-        context.success(`\\n💹 ${symbol.toUpperCase()} MARKET DATA\\n`);
+        context.success(`\n💹 ${symbol.toUpperCase()} MARKET DATA\n`);
         context.log(`Last Price:     ${formatNumber(marketData.lastPrice, 8)} SWAP.HIVE`);
         context.log(`24h Volume:     ${formatNumber(marketData.volume)} ${symbol.toUpperCase()}`);
         context.log(`24h High:       ${formatNumber(marketData.highestBid, 8)} SWAP.HIVE`);
         context.log(`24h Low:        ${formatNumber(marketData.lowestAsk, 8)} SWAP.HIVE`);
         context.log(`Price Change:   ${marketData.priceChangePercent ? formatNumber(marketData.priceChangePercent, 2) + '%' : 'N/A'}`);
         context.log('');
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to get market data: ${error.message}`);
@@ -274,7 +289,7 @@ const plugin = {
           return;
         }
         
-        context.success(`\\n🏆 TOP ${limit} HIVEENGINE TOKENS\\n`);
+        context.success(`\n🏆 TOP ${limit} HIVEENGINE TOKENS\n`);
         context.log('RANK  SYMBOL       PRICE         24H VOL       CHANGE');
         context.log('────  ──────────   ───────────   ───────────   ──────');
         
@@ -331,7 +346,7 @@ const plugin = {
           collections[nft.symbol].push(nft);
         });
         
-        context.success(`\\n🎨 NFT COLLECTIONS - @${account.toUpperCase()}\\n`);
+        context.success(`\n🎨 NFT COLLECTIONS - @${account.toUpperCase()}\n`);
         
         for (const [symbol, tokens] of Object.entries(collections)) {
           context.log(`📚 ${symbol} Collection: ${tokens.length} tokens`);
@@ -347,7 +362,7 @@ const plugin = {
           context.log('');
         }
         
-        context.success(`💎 Total: ${nfts.length} NFTs across ${Object.keys(collections).length} collections\\n`);
+        context.success(`💎 Total: ${nfts.length} NFTs across ${Object.keys(collections).length} collections\n`);
         
       } catch (error) {
         context.error(`Failed to fetch NFTs: ${error.message}`);
@@ -372,7 +387,7 @@ const plugin = {
           return;
         }
         
-        context.success(`\\n⛏️  MINING POOLS\\n`);
+        context.success(`\n⛏️  MINING POOLS\n`);
         
         pools.forEach(pool => {
           context.log(`💰 ${pool.symbol} Pool`);
@@ -502,7 +517,7 @@ const plugin = {
         }
         
         // Show transfer summary
-        context.success(`\\n💎 HIVEENGINE TOKEN TRANSFER\\n`);
+        context.success(`\n💎 HIVEENGINE TOKEN TRANSFER\n`);
         context.log(`From:       @${fromAccount}`);
         context.log(`To:         @${to}`);
         context.log(`Amount:     ${formattedAmount} ${symbol}`);
@@ -627,7 +642,7 @@ const plugin = {
         }
         
         // Show staking summary
-        context.success(`\\n🥩 HIVEENGINE TOKEN STAKING\\n`);
+        context.success(`\n🥩 HIVEENGINE TOKEN STAKING\n`);
         context.log(`Account:    @${fromAccount}`);
         context.log(`Amount:     ${formattedAmount} ${symbol}`);
         context.log(`Token:      ${tokenInfo.name} (${symbol})`);
@@ -725,7 +740,7 @@ const plugin = {
         }
         
         // Show unstaking summary
-        context.success(`\\n⏳ HIVEENGINE TOKEN UNSTAKING\\n`);
+        context.success(`\n⏳ HIVEENGINE TOKEN UNSTAKING\n`);
         context.log(`Account:     @${fromAccount}`);
         context.log(`Amount:      ${formattedAmount} ${symbol}`);
         context.log(`Token:       ${tokenInfo.name} (${symbol})`);
@@ -827,7 +842,7 @@ const plugin = {
         const totalValue = (parseFloat(formattedAmount) * parseFloat(formattedPrice)).toFixed(8);
         
         // Show sell order summary
-        context.success(`\\n📈 HIVEENGINE SELL ORDER\\n`);
+        context.success(`\n📈 HIVEENGINE SELL ORDER\n`);
         context.log(`Account:     @${fromAccount}`);
         context.log(`Selling:     ${formattedAmount} ${symbol}`);
         context.log(`Price:       ${formattedPrice} SWAP.HIVE per ${symbol}`);
@@ -929,7 +944,7 @@ const plugin = {
         }
         
         // Show buy order summary
-        context.success(`\\n📉 HIVEENGINE BUY ORDER\\n`);
+        context.success(`\n📉 HIVEENGINE BUY ORDER\n`);
         context.log(`Account:      @${fromAccount}`);
         context.log(`Buying:       ${formattedAmount} ${symbol}`);
         context.log(`Price:        ${formattedPrice} SWAP.HIVE per ${symbol}`);
@@ -1071,7 +1086,7 @@ const plugin = {
         }
         
         // Show token creation summary
-        context.success(`\\n🏭 HIVEENGINE TOKEN CREATION\\n`);
+        context.success(`\n🏭 HIVEENGINE TOKEN CREATION\n`);
         context.log(`Creator:     @${fromAccount}`);
         context.log(`Name:        ${name}`);
         context.log(`Symbol:      ${symbol}`);
@@ -1347,7 +1362,7 @@ const plugin = {
           rl.close();
 
           // Show summary and confirm
-          context.success('\\n📋 TOKEN CREATION SUMMARY');
+          context.success('\n📋 TOKEN CREATION SUMMARY');
           context.log(`Account:     @${currentAccount}`);
           context.log(`Name:        ${name}`);
           context.log(`Symbol:      ${symbol}`);
