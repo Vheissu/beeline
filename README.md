@@ -20,6 +20,7 @@
 - 🚀 **Password-Based Login** - Derive all keys from your master Hive password
 - 👥 **Multiple Account Support** - Manage unlimited Hive accounts in one wallet
 - 💰 **Complete Blockchain Operations** - Transfers, power up/down, savings (20% APR), reward claiming, RC monitoring
+- 🔌 **Plugin System** - Extensible architecture for HiveEngine, price tracking, and community plugins
 - 🛡️ **Security First** - Memory scrubbing, encrypted storage, zero-click paranoia
 - 📱 **Terminal Native** - Pure command line interface with neon styling
 - 🎮 **Mock Mode** - Test all operations safely before going live
@@ -308,6 +309,25 @@ beeline --help                       # Main help
 beeline <command> --help             # Command-specific help
 ```
 
+#### **Plugin System Commands**
+```bash
+# Plugin management
+beeline plugins list                 # List installed plugins
+beeline plugins install <path>       # Install plugin from directory
+beeline plugins uninstall <name>     # Remove installed plugin
+
+# Run plugin commands
+beeline run-plugin <command> [args]  # Execute plugin command
+
+# Built-in plugins
+beeline run-plugin he-tokens beggars # HiveEngine: Show token balances
+beeline run-plugin he-info BEE       # HiveEngine: Token information
+beeline run-plugin he-market BEE     # HiveEngine: Market data
+beeline run-plugin he-transfer alice 10 BEE "Payment" --mock # HiveEngine: Transfer tokens
+beeline run-plugin prices            # Price Tracker: Crypto prices
+beeline run-plugin hive-price        # Price Tracker: HIVE analysis
+```
+
 ## 🔐 Security Features
 
 ### PIN Protection
@@ -517,12 +537,180 @@ beeline balance
 beeline transfer @recipient 10 HIVE "real payment"
 ```
 
+## 🔌 Plugin System
+
+Beeline features an extensible plugin architecture that allows community developers to create custom extensions for specialized functionality.
+
+### **Installing Example Plugins**
+
+Beeline includes powerful example plugins that are **NOT pre-installed for security reasons**. You must manually install them to use their functionality:
+
+```bash
+# Install the HiveEngine plugin (tokens, transfers, trading, NFTs)
+beeline plugins install examples/hiveengine-plugin
+
+# Install the Price Tracker plugin (crypto prices, HIVE analysis)
+beeline plugins install examples/price-tracker-plugin
+
+# Verify installation
+beeline plugins list
+```
+
+**Why aren't plugins pre-installed?**
+- **Security First**: Plugins can execute arbitrary code, so we require explicit user consent
+- **User Choice**: You only install plugins you actually need
+- **Trust Model**: You review and choose which plugins to trust with your wallet
+
+### **Available Example Plugins**
+
+#### **HiveEngine Plugin**
+Complete integration with HiveEngine sidechain for tokens, NFTs, trading, and token creation:
+
+```bash
+# Token information
+beeline run-plugin he-tokens [account]    # Show token balances
+beeline run-plugin he-info <symbol>       # Detailed token information
+beeline run-plugin he-market <symbol>     # Market data and prices
+beeline run-plugin he-top [limit]         # Top tokens by volume
+
+# Token transfers and operations
+beeline run-plugin he-transfer <to> <amount> <symbol> [memo] # Transfer tokens
+beeline run-plugin he-stake <amount> <symbol>                # Stake tokens for rewards
+beeline run-plugin he-unstake <amount> <symbol>              # Unstake tokens
+
+# Market trading
+beeline run-plugin he-sell <amount> <symbol> <price>         # Create sell order
+beeline run-plugin he-buy <amount> <symbol> <price>          # Create buy order
+
+# Token creation
+beeline run-plugin he-create <name> <symbol> [options]       # Create new token
+beeline run-plugin he-create-ui                              # Interactive token creation wizard
+beeline run-plugin he-issue <amount> <symbol> <to>           # Issue tokens (creator only)
+
+# Advanced features
+beeline run-plugin he-nfts [account]      # NFT collections
+beeline run-plugin he-mining              # Mining pool statistics
+beeline run-plugin he-test                # API connectivity test
+```
+
+**Example Usage:**
+```bash
+# Check your HiveEngine tokens
+beeline run-plugin he-tokens beggars
+
+# Get BEE token information
+beeline run-plugin he-info BEE
+
+# View BEE market data
+beeline run-plugin he-market BEE
+
+# Transfer 10 BEE tokens to alice
+beeline run-plugin he-transfer alice 10 BEE "Payment for services"
+
+# Stake 50 LEO tokens for rewards
+beeline run-plugin he-stake 50 LEO
+
+# Create a sell order: 100 LEO at 1.5 SWAP.HIVE each
+beeline run-plugin he-sell 100 LEO 1.5
+
+# Create a new token (command line)
+beeline run-plugin he-create "My Token" MYTOKEN --precision 8 --max-supply 1000000
+
+# Create a new token (interactive UI)
+beeline run-plugin he-create-ui
+
+# Safe testing with mock mode
+beeline run-plugin he-transfer alice 10 BEE --mock
+beeline run-plugin he-create "Test Token" TEST --mock
+```
+
+#### **Price Tracker Plugin**
+Cryptocurrency price tracking with HIVE ecosystem focus:
+
+```bash
+# Price operations
+beeline run-plugin prices [currency]       # Major crypto prices (USD/EUR/BTC)
+beeline run-plugin hive-price              # Detailed HIVE analysis + portfolio
+beeline run-plugin compare <coins...>      # Compare multiple cryptocurrencies
+```
+
+**Example Usage:**
+```bash
+# View major cryptocurrency prices
+beeline run-plugin prices
+
+# Get detailed HIVE analysis with your portfolio value
+beeline run-plugin hive-price
+
+# Compare Bitcoin, HIVE, and Ethereum
+beeline run-plugin compare bitcoin hive ethereum
+```
+
+### **Plugin Management**
+
+```bash
+# View installed plugins
+beeline plugins list
+
+# Install new plugin from directory
+beeline plugins install examples/my-plugin
+beeline plugins install /path/to/plugin
+
+# Remove plugin
+beeline plugins uninstall plugin-name
+
+# Execute plugin commands
+beeline run-plugin <command-name> [arguments]
+```
+
+### **Plugin Features**
+
+Beeline plugins support both command-line and interactive UI functionality:
+
+#### **Command-Line Interface**
+- Standard CLI commands with arguments and flags
+- Support for `--mock` mode for safe testing
+- Integration with wallet operations and blockchain
+- Automatic help generation and command discovery
+
+#### **Interactive Terminal UI** 
+- Rich terminal interfaces using blessed.js
+- Forms, buttons, and keyboard navigation
+- Tab navigation between form elements
+- Real-time input validation and feedback
+- Cyberpunk-styled UI matching the wallet aesthetic
+
+#### **Plugin Capabilities**
+- Access to wallet account information and balances
+- Safe API integrations with external services
+- Blockchain transaction construction and broadcasting
+- File system access for configuration and data storage
+- Full access to Node.js ecosystem and npm packages
+
+### **Plugin Development**
+
+Create your own plugins using the simple plugin API. See [PLUGIN_DEVELOPMENT.md](PLUGIN_DEVELOPMENT.md) for comprehensive documentation including UI development.
+
+**Quick Start:**
+```bash
+# 1. Create plugin directory with package.json and index.js
+mkdir my-plugin
+cd my-plugin
+
+# 2. Create package.json
+echo '{"name": "my-plugin", "version": "1.0.0", "main": "index.js"}' > package.json
+
+# 3. Create index.js with plugin code
+# 4. Install plugin
+beeline plugins install .
+```
+
 ## 🔧 Development
 
 ### Building from Source
 
 ```bash
-git clone https://github.com/yourusername/beeline
+git clone https://github.com/Vheissu/beeline
 cd beeline
 npm install
 npm run build

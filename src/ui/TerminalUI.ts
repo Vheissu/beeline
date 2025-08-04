@@ -34,11 +34,9 @@ export class TerminalUI {
       title: 'Beeline Wallet',
       fullUnicode: true
     });
-
-    this.initializeAndSetup();
   }
 
-  private async initializeAndSetup(): Promise<void> {
+  public async initialize(): Promise<void> {
     await this.initializeTheme();
     await this.setupUI();
     this.setupKeyBindings();
@@ -212,8 +210,7 @@ export class TerminalUI {
   private setupKeyBindings(): void {
     // Global key bindings
     this.screen.key(['escape', 'q', 'C-c'], () => {
-      this.screen.destroy();
-      process.exit(0);
+      this.cleanup();
     });
 
     // Navigation keys
@@ -247,6 +244,10 @@ export class TerminalUI {
       this.showAccounts();
     });
 
+    this.screen.key(['p'], () => {
+      this.showPlugins();
+    });
+
     this.screen.key(['r'], () => {
       this.refreshCurrentScreen();
     });
@@ -268,14 +269,15 @@ export class TerminalUI {
   private async showDashboard(): Promise<void> {
     this.currentScreen = 'dashboard';
     await this.updateHeader('DASHBOARD');
-    await this.updateFooter('D: Dashboard | B: Balance | T: Transfer | A: Accounts | R: Refresh');
+    await this.updateFooter('D: Dashboard | B: Balance | T: Transfer | A: Accounts | P: Plugins | R: Refresh');
 
     // Set menu items
     const menuItems = [
       '{cyan-fg}[B] View Balance{/cyan-fg}',
       '{magenta-fg}[T] Transfer Funds{/magenta-fg}',
       '{yellow-fg}[A] Manage Accounts{/yellow-fg}',
-      '{green-fg}[K] View Keys{/green-fg}',
+      '{green-fg}[P] Plugin Commands{/green-fg}',
+      '{blue-fg}[K] View Keys{/blue-fg}',
       '{red-fg}[Q] Exit{/red-fg}'
     ];
 
@@ -532,11 +534,12 @@ export class TerminalUI {
       this.showTransfer();
     } else if (cleanText.includes('Manage Accounts') || cleanText.includes('Refresh Accounts')) {
       this.showAccounts();
+    } else if (cleanText.includes('Plugin Commands')) {
+      this.showPlugins();
     } else if (cleanText.includes('Back to Dashboard')) {
       this.showDashboard();
     } else if (cleanText.includes('Exit')) {
-      this.screen.destroy();
-      process.exit(0);
+      this.cleanup();
     } else if (cleanText.includes('Retry')) {
       this.refreshCurrentScreen();
     }
@@ -556,10 +559,96 @@ export class TerminalUI {
       case 'accounts':
         this.showAccounts();
         break;
+      case 'plugins':
+        this.showPlugins();
+        break;
     }
+  }
+
+  private async showPlugins(): Promise<void> {
+    this.currentScreen = 'plugins';
+    await this.updateHeader('PLUGIN COMMANDS');
+    await this.updateFooter('D: Dashboard | R: Refresh | Enter: Execute');
+
+    try {
+      // Import plugin manager
+      const { getPluginManager } = await import('../utils/simple-plugins.js');
+      const pluginManager = getPluginManager();
+      await pluginManager.initialize();
+
+      const commands = pluginManager.getCommands();
+      
+      if (commands.size === 0) {
+        this.infoBox.setContent(`{yellow-fg}{bold}⚠ NO PLUGINS LOADED{/bold}{/yellow-fg}
+
+{white-fg}No plugin commands available.{/white-fg}
+
+{white-fg}To install plugins:{/white-fg}
+{cyan-fg}$ beeline plugins install <path>{/cyan-fg}
+
+{white-fg}Available built-in examples:{/white-fg}
+{cyan-fg}$ beeline plugins install examples/hiveengine-plugin{/cyan-fg}
+{cyan-fg}$ beeline plugins install examples/price-tracker-plugin{/cyan-fg}
+
+{gray-fg}After installation, plugin commands will appear here.{/gray-fg}`);
+
+        this.menuList.setItems([
+          '{cyan-fg}[D] Back to Dashboard{/cyan-fg}'
+        ]);
+      } else {
+        let pluginInfo = `{green-fg}{bold}🔌 AVAILABLE PLUGIN COMMANDS{/bold}{/green-fg}
+
+{white-fg}Found ${commands.size} plugin command${commands.size !== 1 ? 's' : ''}:{/white-fg}
+
+`;
+
+        const menuItems: string[] = [];
+        const commandArray = Array.from(commands.entries());
+        
+        for (const [name, cmd] of commandArray) {
+          const isUI = cmd.isUI ? ' {yellow-fg}(UI){/yellow-fg}' : '';
+          pluginInfo += `{white-fg}${name}${isUI}{/white-fg}\n{gray-fg}  ${cmd.description} (${cmd.pluginName}){/gray-fg}\n\n`;
+          menuItems.push(`{cyan-fg}${name}{/cyan-fg} - ${cmd.description}`);
+        }
+
+        pluginInfo += `{gray-fg}Use CLI to execute commands:{/gray-fg}
+{cyan-fg}$ beeline run-plugin <command> [args]{/cyan-fg}
+
+{yellow-fg}Current mode: ${this.mock ? 'MOCK - Safe for testing' : 'LIVE - Real operations'}{/yellow-fg}`;
+
+        this.infoBox.setContent(pluginInfo);
+        
+        menuItems.push('{blue-fg}[D] Back to Dashboard{/blue-fg}');
+        this.menuList.setItems(menuItems);
+      }
+
+    } catch (error) {
+      this.showError(`Failed to load plugins: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    this.screen.render();
+  }
+
+
+  private cleanup(): void {
+    try {
+      if (process.stdin.setRawMode) {
+        process.stdin.setRawMode(false);
+      }
+      this.screen.destroy();
+    } catch (error) {
+      // Ignore cleanup errors
+    }
+    process.exit(0);
   }
 
   public run(): void {
     this.screen.render();
+    
+    // Keep the process alive
+    if (process.stdin.setRawMode) {
+      process.stdin.setRawMode(true);
+    }
+    process.stdin.resume();
   }
 }

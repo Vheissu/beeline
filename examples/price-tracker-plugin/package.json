@@ -1,0 +1,9 @@
+{
+  "name": "price-tracker-plugin",
+  "version": "1.0.0",
+  "description": "Cryptocurrency price tracking plugin for Beeline wallet",
+  "main": "index.js",
+  "keywords": ["crypto", "price", "tracking", "hive", "btc", "eth"],
+  "author": "Beeline Wallet",
+  "license": "MIT"
+}

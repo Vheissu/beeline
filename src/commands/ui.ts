@@ -37,12 +37,13 @@ export default class UI extends Command {
       console.clear();
       console.log(theme.chalk.glow(`${neonSymbols.diamond} Starting Beeline Terminal UI...`));
       
-      // Create and run the terminal UI
+      // Create and initialize the terminal UI
       const ui = new TerminalUI(keyManager, {
         mock: flags.mock,
         node: flags.node
       });
       
+      await ui.initialize();
       ui.run();
       
     } catch (error) {

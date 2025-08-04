@@ -357,4 +357,33 @@ export class HiveClient {
       throw new Error(`Failed to get RC data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+
+  async broadcastCustomJson(account: string, id: string, json: any, requiredAuths: string[] = [], requiredPostingAuths: string[] = [], pin?: string): Promise<any> {
+    try {
+      // Get the appropriate key based on which auth is required
+      const keyType = requiredAuths.length > 0 ? 'active' : 'posting';
+      const privateKeyWif = await this.keyManager.getPrivateKey(account, keyType, pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`No ${keyType} key found for @${account}. Please import your ${keyType} key first.`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+
+      const operation: any = [
+        'custom_json',
+        {
+          required_auths: requiredAuths,
+          required_posting_auths: requiredPostingAuths,
+          id: id,
+          json: JSON.stringify(json)
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to broadcast custom JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }

@@ -123,7 +123,10 @@ export class KeyManager {
 
       const keyConfig = this.config.accounts[account]?.find(k => k.role === role);
       
-      if (keyConfig?.encrypted && pin) {
+      if (keyConfig?.encrypted) {
+        if (!pin) {
+          throw new Error(`PIN required to decrypt ${role} key for @${account}`);
+        }
         // Decrypt with PIN
         const decrypted = CryptoJS.AES.decrypt(stored, pin).toString(CryptoJS.enc.Utf8);
         if (!decrypted) {

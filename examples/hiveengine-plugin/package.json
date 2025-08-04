@@ -1,0 +1,9 @@
+{
+  "name": "hiveengine-plugin",
+  "version": "1.0.0",
+  "description": "Comprehensive HiveEngine sidechain integration for Beeline wallet",
+  "main": "index.js",
+  "keywords": ["hive", "hiveengine", "blockchain", "tokens", "defi"],
+  "author": "Beeline Wallet",
+  "license": "MIT"
+}
