@@ -201,20 +201,20 @@ const plugin = {
         }
         
         context.success(`\n📊 ${tokenInfo.symbol} TOKEN INFO\n`);
-        context.log(`Name:           ${tokenInfo.name}`);
-        context.log(`Symbol:         ${tokenInfo.symbol}`);
-        context.log(`Precision:      ${tokenInfo.precision} decimals`);
-        context.log(`Max Supply:     ${formatNumber(tokenInfo.maxSupply)} ${tokenInfo.symbol}`);
-        context.log(`Circulating:    ${formatNumber(tokenInfo.circulatingSupply)} ${tokenInfo.symbol}`);
-        context.log(`Issuer:         @${tokenInfo.issuer}`);
+        context.success(`Name:           ${tokenInfo.name}`);
+        context.success(`Symbol:         ${tokenInfo.symbol}`);
+        context.success(`Precision:      ${tokenInfo.precision} decimals`);
+        context.success(`Max Supply:     ${formatNumber(tokenInfo.maxSupply)} ${tokenInfo.symbol}`);
+        context.success(`Circulating:    ${formatNumber(tokenInfo.circulatingSupply)} ${tokenInfo.symbol}`);
+        context.success(`Issuer:         @${tokenInfo.issuer}`);
         
         if (tokenInfo.stakingEnabled) {
-          context.log(`\n🥩 STAKING ENABLED`);
-          context.log(`Unstaking Cool: ${tokenInfo.unstakingCooldown} days`);
+          context.success(`\n🥩 STAKING ENABLED`);
+          context.success(`Unstaking Cool: ${tokenInfo.unstakingCooldown} days`);
         }
         
         if (tokenInfo.url) {
-          context.log(`\nWebsite:        ${tokenInfo.url}`);
+          context.success(`\nWebsite:        ${tokenInfo.url}`);
         }
         
         context.log('');
@@ -253,11 +253,11 @@ const plugin = {
         }
         
         context.success(`\n💹 ${symbol.toUpperCase()} MARKET DATA\n`);
-        context.log(`Last Price:     ${formatNumber(marketData.lastPrice, 8)} SWAP.HIVE`);
-        context.log(`24h Volume:     ${formatNumber(marketData.volume)} ${symbol.toUpperCase()}`);
-        context.log(`24h High:       ${formatNumber(marketData.highestBid, 8)} SWAP.HIVE`);
-        context.log(`24h Low:        ${formatNumber(marketData.lowestAsk, 8)} SWAP.HIVE`);
-        context.log(`Price Change:   ${marketData.priceChangePercent ? formatNumber(marketData.priceChangePercent, 2) + '%' : 'N/A'}`);
+        context.success(`Last Price:     ${formatNumber(marketData.lastPrice, 8)} SWAP.HIVE`);
+        context.success(`24h Volume:     ${formatNumber(marketData.volume)} ${symbol.toUpperCase()}`);
+        context.success(`24h High:       ${formatNumber(marketData.highestBid, 8)} SWAP.HIVE`);
+        context.success(`24h Low:        ${formatNumber(marketData.lowestAsk, 8)} SWAP.HIVE`);
+        context.success(`Price Change:   ${marketData.priceChangePercent ? formatNumber(marketData.priceChangePercent, 2) + '%' : 'N/A'}`);
         context.log('');
         
         // Force process exit to prevent hanging
@@ -302,10 +302,15 @@ const plugin = {
             (parseFloat(token.priceChangePercent) >= 0 ? '+' : '') + formatNumber(token.priceChangePercent, 2) + '%' : 
             'N/A';
           
-          context.log(`${rank}.   ${symbol}   ${price}   ${volume}   ${change}`);
+          context.success(`${rank}.   ${symbol}   ${price}   ${volume}   ${change}`);
         });
         
         context.log('');
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to get top tokens: ${error.message}`);
@@ -333,7 +338,12 @@ const plugin = {
         });
         
         if (!nfts || nfts.length === 0) {
-          context.log(`No NFTs found for @${account}`);
+          context.success(`No NFTs found for @${account}`);
+          
+          // Force process exit to prevent hanging
+          setTimeout(() => {
+            process.exit(0);
+          }, 50);
           return;
         }
         
@@ -349,23 +359,33 @@ const plugin = {
         context.success(`\n🎨 NFT COLLECTIONS - @${account.toUpperCase()}\n`);
         
         for (const [symbol, tokens] of Object.entries(collections)) {
-          context.log(`📚 ${symbol} Collection: ${tokens.length} tokens`);
+          context.success(`📚 ${symbol} Collection: ${tokens.length} tokens`);
           
           tokens.slice(0, 5).forEach(token => {
             const properties = token.properties ? Object.keys(token.properties).length : 0;
-            context.log(`  🎭 ID #${token._id} (${properties} properties)`);
+            context.success(`  🎭 ID #${token._id} (${properties} properties)`);
           });
           
           if (tokens.length > 5) {
-            context.log(`  ... and ${tokens.length - 5} more`);
+            context.success(`  ... and ${tokens.length - 5} more`);
           }
           context.log('');
         }
         
         context.success(`💎 Total: ${nfts.length} NFTs across ${Object.keys(collections).length} collections\n`);
         
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+        
       } catch (error) {
         context.error(`Failed to fetch NFTs: ${error.message}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
       }
     });
     
@@ -390,13 +410,18 @@ const plugin = {
         context.success(`\n⛏️  MINING POOLS\n`);
         
         pools.forEach(pool => {
-          context.log(`💰 ${pool.symbol} Pool`);
-          context.log(`  Token Power:    ${formatNumber(pool.tokenMiners)} miners`);
-          context.log(`  NFT Power:      ${formatNumber(pool.nftTokenMiners)} NFT miners`);
-          context.log(`  Total Power:    ${formatNumber(pool.totalPower)}`);
-          context.log(`  Active:         ${pool.active ? '✅ Yes' : '❌ No'}`);
+          context.success(`💰 ${pool.symbol} Pool`);
+          context.success(`  Token Power:    ${formatNumber(pool.tokenMiners)} miners`);
+          context.success(`  NFT Power:      ${formatNumber(pool.nftTokenMiners)} NFT miners`);
+          context.success(`  Total Power:    ${formatNumber(pool.totalPower)}`);
+          context.success(`  Active:         ${pool.active ? '✅ Yes' : '❌ No'}`);
           context.log('');
         });
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to fetch mining pools: ${error.message}`);
@@ -436,11 +461,16 @@ const plugin = {
               })
             });
             
-            context.log(`${endpoint}: ${response.ok ? '✅ OK' : '❌ Failed'} (${response.status})`);
+            context.success(`${endpoint}: ${response.ok ? '✅ OK' : '❌ Failed'} (${response.status})`);
           } catch (error) {
-            context.log(`${endpoint}: ❌ Failed (${error.message})`);
+            context.success(`${endpoint}: ❌ Failed (${error.message})`);
           }
         }
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`API test failed: ${error.message}`);
@@ -775,6 +805,230 @@ const plugin = {
       }
     });
     
+    // COMMAND: Delegate Staked Tokens
+    context.addCommand('he-delegate', 'Delegate staked tokens to another account', async (args, flags) => {
+      try {
+        if (args.length < 3) {
+          context.error('Usage: he-delegate <amount> <symbol> <to> [--from account] [--mock]');
+          context.success('Examples:');
+          context.success('  beeline run-plugin he-delegate 100 LEO alice     # Delegate 100 staked LEO to @alice');
+          context.success('  beeline run-plugin he-delegate 50 BEE bob --mock');
+          return;
+        }
+        
+        const amount = args[0];
+        const symbol = args[1].toUpperCase();
+        const toAccount = getCleanAccount(args[2]);
+        const fromAccount = getCleanAccount(flags.from || await context.wallet.getCurrentAccount());
+        const isMock = flags.mock;
+        
+        if (!fromAccount) {
+          context.error('No account specified and no current account set');
+          return;
+        }
+        
+        if (!toAccount) {
+          context.error('Invalid recipient account');
+          return;
+        }
+        
+        // Validate amount
+        let validatedAmount;
+        try {
+          validatedAmount = validateTokenAmount(amount);
+        } catch (error) {
+          context.error(error.message);
+          return;
+        }
+        
+        // Get token info to validate staking enabled
+        context.success(`🔍 Validating ${symbol} token for delegation...`);
+        const tokenInfo = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'tokens',
+          query: { symbol }
+        });
+        
+        if (!tokenInfo) {
+          context.error(`Token ${symbol} not found on HiveEngine`);
+          return;
+        }
+        
+        if (!tokenInfo.stakingEnabled) {
+          context.error(`Token ${symbol} does not support staking/delegation`);
+          return;
+        }
+        
+        // Check available staked balance
+        const stake = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'balances',
+          query: { account: fromAccount, symbol }
+        });
+        
+        const availableStake = parseFloat(stake?.stake || 0) - parseFloat(stake?.delegationsOut || 0);
+        if (availableStake < parseFloat(validatedAmount)) {
+          context.error(`Insufficient available staked ${symbol}. Available: ${availableStake.toFixed(tokenInfo.precision || 3)} ${symbol}`);
+          return;
+        }
+        
+        // Show delegation summary
+        context.success(`\n🤝 HIVEENGINE TOKEN DELEGATION\n`);
+        context.success(`From:        @${fromAccount}`);
+        context.success(`To:          @${toAccount}`);
+        context.success(`Delegating:  ${validatedAmount} ${symbol} (staked)`);
+        context.success(`Available:   ${availableStake.toFixed(tokenInfo.precision || 3)} ${symbol}`);
+        context.success('');
+        
+        if (isMock) {
+          context.success('✅ MOCK MODE: Delegation validated but not executed');
+          return;
+        }
+        
+        context.success('📡 Creating HiveEngine delegation...');
+        
+        const result = await createHiveEngineTransaction(
+          fromAccount,
+          'tokens',
+          'delegate',
+          {
+            to: toAccount,
+            symbol,
+            quantity: validatedAmount
+          }
+        );
+        
+        context.success('✅ Token delegation successful!');
+        context.success(`Transaction ID: ${result.id}`);
+        context.success(`${validatedAmount} ${symbol} staked tokens delegated to @${toAccount}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+        
+      } catch (error) {
+        context.error(`Delegation failed: ${error.message}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+      }
+    });
+    
+    // COMMAND: Undelegate Staked Tokens
+    context.addCommand('he-undelegate', 'Begin undelegating tokens from another account', async (args, flags) => {
+      try {
+        if (args.length < 3) {
+          context.error('Usage: he-undelegate <amount> <symbol> <from> [--account your_account] [--mock]');
+          context.success('Examples:');
+          context.success('  beeline run-plugin he-undelegate 100 LEO alice   # Undelegate 100 LEO from @alice');
+          context.success('  beeline run-plugin he-undelegate 50 BEE bob --mock');
+          return;
+        }
+        
+        const amount = args[0];
+        const symbol = args[1].toUpperCase();
+        const fromAccount = getCleanAccount(args[2]);
+        const yourAccount = getCleanAccount(flags.account || await context.wallet.getCurrentAccount());
+        const isMock = flags.mock;
+        
+        if (!yourAccount) {
+          context.error('No account specified and no current account set');
+          return;
+        }
+        
+        if (!fromAccount) {
+          context.error('Invalid delegatee account');
+          return;
+        }
+        
+        // Validate amount
+        let validatedAmount;
+        try {
+          validatedAmount = validateTokenAmount(amount);
+        } catch (error) {
+          context.error(error.message);
+          return;
+        }
+        
+        // Get token info
+        context.success(`🔍 Validating ${symbol} token for undelegation...`);
+        const tokenInfo = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'tokens',
+          query: { symbol }
+        });
+        
+        if (!tokenInfo) {
+          context.error(`Token ${symbol} not found on HiveEngine`);
+          return;
+        }
+        
+        if (!tokenInfo.stakingEnabled) {
+          context.error(`Token ${symbol} does not support staking/delegation`);
+          return;
+        }
+        
+        // Check delegation exists
+        const delegation = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'balances',
+          query: { account: yourAccount, symbol }
+        });
+        
+        const delegatedAmount = parseFloat(delegation?.delegationsOut || 0);
+        if (delegatedAmount < parseFloat(validatedAmount)) {
+          context.error(`Insufficient delegated ${symbol}. Delegated: ${delegatedAmount.toFixed(tokenInfo.precision || 3)} ${symbol}`);
+          return;
+        }
+        
+        // Show undelegation summary
+        context.success(`\n🔄 HIVEENGINE TOKEN UNDELEGATION\n`);
+        context.success(`Your Account: @${yourAccount}`);
+        context.success(`From:         @${fromAccount}`);
+        context.success(`Undelegating: ${validatedAmount} ${symbol}`);
+        context.success(`Cooldown:     ${tokenInfo.undelegationCooldown || tokenInfo.unstakingCooldown || 7} days`);
+        context.success('');
+        
+        if (isMock) {
+          context.success('✅ MOCK MODE: Undelegation validated but not executed');
+          return;
+        }
+        
+        context.success('📡 Creating HiveEngine undelegation...');
+        
+        const result = await createHiveEngineTransaction(
+          yourAccount,
+          'tokens',
+          'undelegate',
+          {
+            from: fromAccount,
+            symbol,
+            quantity: validatedAmount
+          }
+        );
+        
+        context.success('✅ Token undelegation initiated!');
+        context.success(`Transaction ID: ${result.id}`);
+        context.success(`${validatedAmount} ${symbol} will return to your staked balance after cooldown period`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+        
+      } catch (error) {
+        context.error(`Undelegation failed: ${error.message}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+      }
+    });
+    
     // COMMAND: Market Sell Order
     context.addCommand('he-sell', 'Create a sell order on HiveEngine market', async (args, flags) => {
       try {
@@ -976,6 +1230,356 @@ const plugin = {
         
       } catch (error) {
         context.error(`Buy order failed: ${error.message}`);
+      }
+    });
+    
+    // COMMAND: Market Buy (spend SWAP.HIVE, get tokens at current rate)
+    context.addCommand('he-market-buy', 'Market buy tokens with SWAP.HIVE at current rate', async (args, flags) => {
+      try {
+        if (args.length < 2) {
+          context.error('Usage: he-market-buy <hive_amount> <symbol> [--from account] [--mock]');
+          context.success('Examples:');
+          context.success('  beeline run-plugin he-market-buy 10 LEO      # Spend 10 SWAP.HIVE, get LEO tokens');
+          context.success('  beeline run-plugin he-market-buy 5.5 BEE --mock');
+          return;
+        }
+        
+        const hiveAmount = args[0];
+        const symbol = args[1].toUpperCase();
+        const fromAccount = getCleanAccount(flags.from || await context.wallet.getCurrentAccount());
+        const isMock = flags.mock;
+        
+        if (!fromAccount) {
+          context.error('No account specified and no current account set');
+          return;
+        }
+        
+        // Validate amount
+        let validatedAmount;
+        try {
+          validatedAmount = validateTokenAmount(hiveAmount);
+        } catch (error) {
+          context.error(error.message);
+          return;
+        }
+        
+        // Get token info
+        context.success(`🔍 Validating ${symbol} token for market buy...`);
+        const tokenInfo = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'tokens',
+          query: { symbol }
+        });
+        
+        if (!tokenInfo) {
+          context.error(`Token ${symbol} not found on HiveEngine`);
+          return;
+        }
+        
+        // Check SWAP.HIVE balance
+        const hiveBalance = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'balances',
+          query: { account: fromAccount, symbol: 'SWAP.HIVE' }
+        });
+        
+        if (!hiveBalance || parseFloat(hiveBalance.balance || 0) < parseFloat(validatedAmount)) {
+          context.error(`Insufficient SWAP.HIVE balance. Available: ${hiveBalance?.balance || '0'} SWAP.HIVE`);
+          return;
+        }
+        
+        // Get current market data to estimate tokens received
+        const buyOrders = await rpcCall('/contracts', 'find', {
+          contract: 'market',
+          table: 'sellBook',
+          query: { symbol },
+          limit: 10,
+          indexes: [{ index: 'price', descending: false }]
+        });
+        
+        let estimatedTokens = 0;
+        let remainingHive = parseFloat(validatedAmount);
+        
+        if (buyOrders && buyOrders.length > 0) {
+          for (const order of buyOrders) {
+            const orderPrice = parseFloat(order.price);
+            const orderQuantity = parseFloat(order.quantity);
+            const orderValue = orderPrice * orderQuantity;
+            
+            if (remainingHive <= 0) break;
+            
+            if (remainingHive >= orderValue) {
+              estimatedTokens += orderQuantity;
+              remainingHive -= orderValue;
+            } else {
+              estimatedTokens += remainingHive / orderPrice;
+              remainingHive = 0;
+            }
+          }
+        }
+        
+        // Show market buy summary
+        context.success(`\n💸 HIVEENGINE MARKET BUY\n`);
+        context.success(`Account:          @${fromAccount}`);
+        context.success(`Spending:         ${validatedAmount} SWAP.HIVE`);
+        context.success(`Token:            ${symbol}`);
+        context.success(`Estimated tokens: ~${estimatedTokens.toFixed(tokenInfo.precision || 3)} ${symbol}`);
+        context.success(`Available HIVE:   ${hiveBalance.balance} SWAP.HIVE`);
+        context.success('');
+        
+        if (isMock) {
+          context.success('✅ MOCK MODE: Market buy validated but not executed');
+          return;
+        }
+        
+        context.success('📡 Executing HiveEngine market buy...');
+        
+        const result = await createHiveEngineTransaction(
+          fromAccount,
+          'market',
+          'marketBuy',
+          {
+            symbol,
+            quantity: validatedAmount
+          }
+        );
+        
+        context.success('✅ Market buy executed successfully!');
+        context.success(`Transaction ID: ${result.id}`);
+        context.success(`Spent ${validatedAmount} SWAP.HIVE to buy ${symbol} tokens at current market rate`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+        
+      } catch (error) {
+        context.error(`Market buy failed: ${error.message}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+      }
+    });
+    
+    // COMMAND: Market Sell (sell tokens at current rate)
+    context.addCommand('he-market-sell', 'Market sell tokens at current rate for SWAP.HIVE', async (args, flags) => {
+      try {
+        if (args.length < 2) {
+          context.error('Usage: he-market-sell <amount> <symbol> [--from account] [--mock]');
+          context.success('Examples:');
+          context.success('  beeline run-plugin he-market-sell 100 LEO    # Sell 100 LEO at current rate');
+          context.success('  beeline run-plugin he-market-sell 50 BEE --mock');
+          return;
+        }
+        
+        const amount = args[0];
+        const symbol = args[1].toUpperCase();
+        const fromAccount = getCleanAccount(flags.from || await context.wallet.getCurrentAccount());
+        const isMock = flags.mock;
+        
+        if (!fromAccount) {
+          context.error('No account specified and no current account set');
+          return;
+        }
+        
+        // Validate amount
+        let validatedAmount;
+        try {
+          validatedAmount = validateTokenAmount(amount);
+        } catch (error) {
+          context.error(error.message);
+          return;
+        }
+        
+        // Get token info
+        context.success(`🔍 Validating ${symbol} token for market sell...`);
+        const tokenInfo = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'tokens',
+          query: { symbol }
+        });
+        
+        if (!tokenInfo) {
+          context.error(`Token ${symbol} not found on HiveEngine`);
+          return;
+        }
+        
+        // Check token balance
+        const balance = await rpcCall('/contracts', 'findOne', {
+          contract: 'tokens',
+          table: 'balances',
+          query: { account: fromAccount, symbol }
+        });
+        
+        if (!balance || parseFloat(balance.balance || 0) < parseFloat(validatedAmount)) {
+          context.error(`Insufficient ${symbol} balance. Available: ${balance?.balance || '0'} ${symbol}`);
+          return;
+        }
+        
+        // Get current market data to estimate HIVE received
+        const sellOrders = await rpcCall('/contracts', 'find', {
+          contract: 'market',
+          table: 'buyBook',
+          query: { symbol },
+          limit: 10,
+          indexes: [{ index: 'price', descending: true }]
+        });
+        
+        let estimatedHive = 0;
+        let remainingTokens = parseFloat(validatedAmount);
+        
+        if (sellOrders && sellOrders.length > 0) {
+          for (const order of sellOrders) {
+            const orderPrice = parseFloat(order.price);
+            const orderQuantity = parseFloat(order.quantity);
+            
+            if (remainingTokens <= 0) break;
+            
+            if (remainingTokens >= orderQuantity) {
+              estimatedHive += orderPrice * orderQuantity;
+              remainingTokens -= orderQuantity;
+            } else {
+              estimatedHive += orderPrice * remainingTokens;
+              remainingTokens = 0;
+            }
+          }
+        }
+        
+        // Show market sell summary
+        context.success(`\n💰 HIVEENGINE MARKET SELL\n`);
+        context.success(`Account:          @${fromAccount}`);
+        context.success(`Selling:          ${validatedAmount} ${symbol}`);
+        context.success(`Estimated HIVE:   ~${estimatedHive.toFixed(8)} SWAP.HIVE`);
+        context.success(`Available:        ${balance.balance} ${symbol}`);
+        context.success('');
+        
+        if (isMock) {
+          context.success('✅ MOCK MODE: Market sell validated but not executed');
+          return;
+        }
+        
+        context.success('📡 Executing HiveEngine market sell...');
+        
+        const result = await createHiveEngineTransaction(
+          fromAccount,
+          'market',
+          'marketSell',
+          {
+            symbol,
+            quantity: validatedAmount
+          }
+        );
+        
+        context.success('✅ Market sell executed successfully!');
+        context.success(`Transaction ID: ${result.id}`);
+        context.success(`Sold ${validatedAmount} ${symbol} at current market rate for SWAP.HIVE`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+        
+      } catch (error) {
+        context.error(`Market sell failed: ${error.message}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+      }
+    });
+    
+    // COMMAND: Cancel Order
+    context.addCommand('he-cancel', 'Cancel a buy or sell order', async (args, flags) => {
+      try {
+        if (args.length < 2) {
+          context.error('Usage: he-cancel <type> <order_id> [--from account] [--mock]');
+          context.success('Examples:');
+          context.success('  beeline run-plugin he-cancel buy 64a5f2b1c8d9e0f1234567890    # Cancel buy order');
+          context.success('  beeline run-plugin he-cancel sell 64a5f2b1c8d9e0f1234567891   # Cancel sell order');
+          return;
+        }
+        
+        const orderType = args[0].toLowerCase();
+        const orderId = args[1];
+        const fromAccount = getCleanAccount(flags.from || await context.wallet.getCurrentAccount());
+        const isMock = flags.mock;
+        
+        if (!fromAccount) {
+          context.error('No account specified and no current account set');
+          return;
+        }
+        
+        if (!['buy', 'sell'].includes(orderType)) {
+          context.error('Order type must be "buy" or "sell"');
+          return;
+        }
+        
+        // Validate order ID format (basic check)
+        if (!orderId || orderId.length < 10) {
+          context.error('Invalid order ID format');
+          return;
+        }
+        
+        // Try to find the order to show details
+        const tableName = orderType === 'buy' ? 'buyBook' : 'sellBook';
+        const order = await rpcCall('/contracts', 'findOne', {
+          contract: 'market',
+          table: tableName,
+          query: { _id: orderId, account: fromAccount }
+        });
+        
+        // Show cancel summary
+        context.success(`\n❌ CANCEL HIVEENGINE ORDER\n`);
+        context.success(`Account:    @${fromAccount}`);
+        context.success(`Order Type: ${orderType.toUpperCase()}`);
+        context.success(`Order ID:   ${orderId}`);
+        
+        if (order) {
+          context.success(`Symbol:     ${order.symbol}`);
+          context.success(`Quantity:   ${order.quantity} ${order.symbol}`);
+          context.success(`Price:      ${order.price} SWAP.HIVE`);
+          context.success(`Total:      ${(parseFloat(order.quantity) * parseFloat(order.price)).toFixed(8)} SWAP.HIVE`);
+        } else {
+          context.success('Order:      Not found or not owned by your account');
+        }
+        context.success('');
+        
+        if (isMock) {
+          context.success('✅ MOCK MODE: Order cancellation validated but not executed');
+          return;
+        }
+        
+        context.success('📡 Cancelling HiveEngine order...');
+        
+        const result = await createHiveEngineTransaction(
+          fromAccount,
+          'market',
+          'cancel',
+          {
+            type: orderType,
+            id: orderId
+          }
+        );
+        
+        context.success('✅ Order cancelled successfully!');
+        context.success(`Transaction ID: ${result.id}`);
+        context.success(`Your ${orderType} order has been cancelled and funds returned`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
+        
+      } catch (error) {
+        context.error(`Order cancellation failed: ${error.message}`);
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
       }
     });
     
@@ -1497,10 +2101,15 @@ const plugin = {
       context.log('  he-transfer <to> <amount> <symbol> [memo] - Transfer tokens');
       context.log('  he-stake <amount> <symbol>                - Stake tokens');
       context.log('  he-unstake <amount> <symbol>              - Unstake tokens');
+      context.log('  he-delegate <amount> <symbol> <to>        - Delegate staked tokens');
+      context.log('  he-undelegate <amount> <symbol> <from>    - Undelegate tokens');
       context.log('');
       context.log('💹 MARKET TRADING:');
-      context.log('  he-sell <amount> <symbol> <price>         - Create sell order');
-      context.log('  he-buy <amount> <symbol> <price>          - Create buy order');
+      context.log('  he-sell <amount> <symbol> <price>         - Create limit sell order');
+      context.log('  he-buy <amount> <symbol> <price>          - Create limit buy order');
+      context.log('  he-market-sell <amount> <symbol>          - Market sell at current rate');
+      context.log('  he-market-buy <hive_amount> <symbol>      - Market buy with SWAP.HIVE');
+      context.log('  he-cancel <buy|sell> <order_id>           - Cancel an order');
       context.log('');
       context.log('🏭 TOKEN CREATION:');
       context.log('  he-create <name> <symbol> [options]       - Create new token');
@@ -1511,11 +2120,13 @@ const plugin = {
       context.log('  beeline run-plugin he-tokens beggars');
       context.log('  beeline run-plugin he-transfer alice 10 BEE "Payment"');
       context.log('  beeline run-plugin he-stake 50 LEO');
-      context.log('  beeline run-plugin he-sell 100 LEO 1.5  # Sell 100 LEO at 1.5 SWAP.HIVE');
-      context.log('  beeline run-plugin he-buy 50 BEE 0.45   # Buy 50 BEE at 0.45 SWAP.HIVE');
+      context.log('  beeline run-plugin he-delegate 25 LEO alice          # Delegate 25 staked LEO');
+      context.log('  beeline run-plugin he-sell 100 LEO 1.5               # Limit sell 100 LEO at 1.5');
+      context.log('  beeline run-plugin he-market-buy 10 BEE               # Spend 10 SWAP.HIVE on BEE');
+      context.log('  beeline run-plugin he-cancel sell 64a5f2b1...         # Cancel sell order');
       context.log('  beeline run-plugin he-create "My Token" MYTOKEN --precision 8');
       context.log('  beeline run-plugin he-issue 1000 MYTOKEN alice');
-      context.log('  beeline run-plugin he-transfer alice 10 BEE --mock  # Safe testing');
+      context.log('  beeline run-plugin he-transfer alice 10 BEE --mock   # Safe testing');
     }
   }
 };

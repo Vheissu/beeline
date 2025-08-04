@@ -51,7 +51,7 @@ const plugin = {
         
         const data = await response.json();
         
-        context.success(`\\n💰 CRYPTOCURRENCY PRICES (${currency.toUpperCase()})\\n`);
+        context.success(`\n💰 CRYPTOCURRENCY PRICES (${currency.toUpperCase()})\n`);
         
         // Define coin display order and names
         const coinOrder = [
@@ -75,12 +75,17 @@ const plugin = {
               `$${(priceData.market_cap / 1000000).toFixed(0)}M` : 
               'N/A';
             
-            context.log(`⚡ ${coin.name.padEnd(20)} ${price.padStart(12)} ${change.padStart(20)} MC: ${marketCap.padStart(8)}`);
+            context.success(`⚡ ${coin.name.padEnd(20)} ${price.padStart(12)} ${change.padStart(20)} MC: ${marketCap.padStart(8)}`);
           }
         });
         
-        context.log(`\\n📊 Updated: ${new Date().toLocaleTimeString()}`);
-        context.log('💡 Tip: Use "beeline run-plugin hive-price" for detailed HIVE analysis\\n');
+        context.success(`\n📊 Updated: ${new Date().toLocaleTimeString()}`);
+        context.success('💡 Tip: Use "beeline run-plugin hive-price" for detailed HIVE analysis\n');
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to fetch prices: ${error.message}`);
@@ -102,29 +107,29 @@ const plugin = {
         const data = await response.json();
         const market = data.market_data;
         
-        context.success(`\\n🔮 HIVE ECOSYSTEM ANALYSIS\\n`);
+        context.success(`\n🔮 HIVE ECOSYSTEM ANALYSIS\n`);
         
         // Current prices
-        context.log(`💰 CURRENT PRICES`);
-        context.log(`HIVE:           ${formatPrice(market.current_price.usd)}`);
-        context.log(`Market Cap:     $${(market.market_cap.usd / 1000000).toFixed(1)}M`);
-        context.log(`24h Volume:     $${(market.total_volume.usd / 1000000).toFixed(1)}M`);
-        context.log(`Circulating:    ${(market.circulating_supply / 1000000).toFixed(1)}M HIVE`);
+        context.success(`💰 CURRENT PRICES`);
+        context.success(`HIVE:           ${formatPrice(market.current_price.usd)}`);
+        context.success(`Market Cap:     $${(market.market_cap.usd / 1000000).toFixed(1)}M`);
+        context.success(`24h Volume:     $${(market.total_volume.usd / 1000000).toFixed(1)}M`);
+        context.success(`Circulating:    ${(market.circulating_supply / 1000000).toFixed(1)}M HIVE`);
         
         // Price changes
-        context.log(`\\n📈 PRICE CHANGES`);
-        context.log(`1 Hour:         ${formatChange(market.price_change_percentage_1h_in_currency?.usd)}`);
-        context.log(`24 Hours:       ${formatChange(market.price_change_percentage_24h)}`);
-        context.log(`7 Days:         ${formatChange(market.price_change_percentage_7d)}`);
-        context.log(`30 Days:        ${formatChange(market.price_change_percentage_30d)}`);
-        context.log(`1 Year:         ${formatChange(market.price_change_percentage_1y)}`);
+        context.success(`\n📈 PRICE CHANGES`);
+        context.success(`1 Hour:         ${formatChange(market.price_change_percentage_1h_in_currency?.usd)}`);
+        context.success(`24 Hours:       ${formatChange(market.price_change_percentage_24h)}`);
+        context.success(`7 Days:         ${formatChange(market.price_change_percentage_7d)}`);
+        context.success(`30 Days:        ${formatChange(market.price_change_percentage_30d)}`);
+        context.success(`1 Year:         ${formatChange(market.price_change_percentage_1y)}`);
         
         // Price extremes
-        context.log(`\\n🎯 PRICE LEVELS`);
-        context.log(`24h High:       ${formatPrice(market.high_24h.usd)}`);
-        context.log(`24h Low:        ${formatPrice(market.low_24h.usd)}`);
-        context.log(`All-Time High:  ${formatPrice(market.ath.usd)} (${new Date(market.ath_date.usd).toLocaleDateString()})`);
-        context.log(`All-Time Low:   ${formatPrice(market.atl.usd)} (${new Date(market.atl_date.usd).toLocaleDateString()})`);
+        context.success(`\n🎯 PRICE LEVELS`);
+        context.success(`24h High:       ${formatPrice(market.high_24h.usd)}`);
+        context.success(`24h Low:        ${formatPrice(market.low_24h.usd)}`);
+        context.success(`All-Time High:  ${formatPrice(market.ath.usd)} (${new Date(market.ath_date.usd).toLocaleDateString()})`);
+        context.success(`All-Time Low:   ${formatPrice(market.atl.usd)} (${new Date(market.atl_date.usd).toLocaleDateString()})`);
         
         // Try to get user's HIVE balance for portfolio calculation
         try {
@@ -136,17 +141,22 @@ const plugin = {
               const hbdAmount = parseFloat(balance.hbd.replace(' HBD', ''));
               const portfolioValue = (hiveAmount * market.current_price.usd) + hbdAmount;
               
-              context.log(`\\n💼 YOUR PORTFOLIO (@${currentAccount})`);
-              context.log(`HIVE Balance:   ${hiveAmount.toFixed(3)} HIVE = ${formatPrice(hiveAmount * market.current_price.usd)}`);
-              context.log(`HBD Balance:    ${hbdAmount.toFixed(3)} HBD = ${formatPrice(hbdAmount)}`);
-              context.log(`Total Value:    ${formatPrice(portfolioValue)}`);
+              context.success(`\n💼 YOUR PORTFOLIO (@${currentAccount})`);
+              context.success(`HIVE Balance:   ${hiveAmount.toFixed(3)} HIVE = ${formatPrice(hiveAmount * market.current_price.usd)}`);
+              context.success(`HBD Balance:    ${hbdAmount.toFixed(3)} HBD = ${formatPrice(hbdAmount)}`);
+              context.success(`Total Value:    ${formatPrice(portfolioValue)}`);
             }
           }
         } catch (error) {
           // Silently skip portfolio calculation if no wallet access
         }
         
-        context.log('');
+        context.success('');
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to fetch HIVE analysis: ${error.message}`);
@@ -173,9 +183,9 @@ const plugin = {
         
         const data = await response.json();
         
-        context.success(`\\n🔍 PRICE COMPARISON\\n`);
-        context.log(`COIN           USD PRICE      BTC PRICE      24H CHANGE`);
-        context.log(`──────────────────────────────────────────────────────`);
+        context.success(`\n🔍 PRICE COMPARISON\n`);
+        context.success(`COIN           USD PRICE      BTC PRICE      24H CHANGE`);
+        context.success(`──────────────────────────────────────────────────────`);
         
         args.forEach(coin => {
           const priceData = data[coin];
@@ -184,32 +194,39 @@ const plugin = {
             const btcPrice = `₿${priceData.btc.toFixed(8)}`.padStart(12);
             const change = formatChange(priceData.usd_24h_change);
             
-            context.log(`${coin.toUpperCase().padEnd(12)} ${usdPrice} ${btcPrice} ${change}`);
+            context.success(`${coin.toUpperCase().padEnd(12)} ${usdPrice} ${btcPrice} ${change}`);
           } else {
-            context.log(`${coin.toUpperCase().padEnd(12)} NOT FOUND`);
+            context.success(`${coin.toUpperCase().padEnd(12)} NOT FOUND`);
           }
         });
         
-        context.log('');
+        context.success('');
+        
+        // Force process exit to prevent hanging
+        setTimeout(() => {
+          process.exit(0);
+        }, 50);
         
       } catch (error) {
         context.error(`Failed to compare prices: ${error.message}`);
       }
     });
     
-    // Plugin activation complete
-    context.success('💰 Price Tracker Plugin Loaded!');
-    context.log('');
-    context.log('Available commands:');
-    context.log('  prices [currency]     - Show major crypto prices (default: USD)');
-    context.log('  hive-price           - Detailed HIVE analysis with portfolio value');
-    context.log('  compare <coins...>   - Compare multiple cryptocurrency prices');
-    context.log('');
-    context.log('Examples:');
-    context.log('  beeline run-plugin prices');
-    context.log('  beeline run-plugin hive-price');
-    context.log('  beeline run-plugin compare bitcoin hive ethereum');
-    context.log('');
+    // Plugin activation complete - only show in verbose mode
+    if (process.env.BEELINE_VERBOSE || process.env.DEBUG) {
+      context.success('💰 Price Tracker Plugin Loaded!');
+      context.log('');
+      context.log('Available commands:');
+      context.log('  prices [currency]     - Show major crypto prices (default: USD)');
+      context.log('  hive-price           - Detailed HIVE analysis with portfolio value');
+      context.log('  compare <coins...>   - Compare multiple cryptocurrency prices');
+      context.log('');
+      context.log('Examples:');
+      context.log('  beeline run-plugin prices');
+      context.log('  beeline run-plugin hive-price');
+      context.log('  beeline run-plugin compare bitcoin hive ethereum');
+      context.log('');
+    }
   }
 };
 

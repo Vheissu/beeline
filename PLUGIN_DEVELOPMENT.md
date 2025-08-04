@@ -221,6 +221,31 @@ const balance = await context.wallet.getBalance('alice');
 
 // Get balance for current account
 const balance = await context.wallet.getBalance();
+
+// 🚀 NEW: Broadcast custom JSON operations (blockchain transactions)
+// Perfect for HiveEngine, NFTs, DeFi protocols, and custom smart contracts
+const result = await context.wallet.broadcastCustomJson(
+  'alice',                    // Account name
+  'ssc-mainnet-hive',        // Contract ID (e.g., HiveEngine)
+  {                          // JSON payload
+    contractName: 'tokens',
+    contractAction: 'transfer',
+    contractPayload: {
+      symbol: 'BEE',
+      to: 'bob',
+      quantity: '10.000'
+    }
+  },
+  [],                        // Required active auths (empty for posting)
+  ['alice']                  // Required posting auths
+);
+// Returns: { id: 'tx_hash', block_num: 12345, trx_num: 1 }
+
+// The method automatically handles:
+// - Key retrieval from secure vault
+// - PIN prompting for encrypted keys (with proper masking)
+// - Transaction signing and broadcasting
+// - Error handling and user feedback
 ```
 
 #### UI Utilities

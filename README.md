@@ -564,33 +564,36 @@ beeline plugins list
 ### **Available Example Plugins**
 
 #### **HiveEngine Plugin**
-Complete integration with HiveEngine sidechain for tokens, NFTs, trading, and token creation:
+Complete integration with HiveEngine sidechain with **full contract coverage** for tokens, NFTs, trading, and token creation:
 
 ```bash
-# Token information
+# 📊 INFORMATION & ANALYSIS
 beeline run-plugin he-tokens [account]    # Show token balances
 beeline run-plugin he-info <symbol>       # Detailed token information
 beeline run-plugin he-market <symbol>     # Market data and prices
 beeline run-plugin he-top [limit]         # Top tokens by volume
-
-# Token transfers and operations
-beeline run-plugin he-transfer <to> <amount> <symbol> [memo] # Transfer tokens
-beeline run-plugin he-stake <amount> <symbol>                # Stake tokens for rewards
-beeline run-plugin he-unstake <amount> <symbol>              # Unstake tokens
-
-# Market trading
-beeline run-plugin he-sell <amount> <symbol> <price>         # Create sell order
-beeline run-plugin he-buy <amount> <symbol> <price>          # Create buy order
-
-# Token creation
-beeline run-plugin he-create <name> <symbol> [options]       # Create new token
-beeline run-plugin he-create-ui                              # Interactive token creation wizard
-beeline run-plugin he-issue <amount> <symbol> <to>           # Issue tokens (creator only)
-
-# Advanced features
 beeline run-plugin he-nfts [account]      # NFT collections
 beeline run-plugin he-mining              # Mining pool statistics
 beeline run-plugin he-test                # API connectivity test
+
+# 💸 TOKEN TRANSACTIONS
+beeline run-plugin he-transfer <to> <amount> <symbol> [memo] # Transfer tokens
+beeline run-plugin he-stake <amount> <symbol>                # Stake tokens for rewards
+beeline run-plugin he-unstake <amount> <symbol>              # Unstake tokens (with cooldown)
+beeline run-plugin he-delegate <amount> <symbol> <to>        # Delegate staked tokens
+beeline run-plugin he-undelegate <amount> <symbol> <from>    # Undelegate tokens
+
+# 💹 MARKET TRADING (Complete Coverage)
+beeline run-plugin he-sell <amount> <symbol> <price>         # Create limit sell order
+beeline run-plugin he-buy <amount> <symbol> <price>          # Create limit buy order
+beeline run-plugin he-market-sell <amount> <symbol>          # Market sell at current rate
+beeline run-plugin he-market-buy <hive_amount> <symbol>      # Market buy with SWAP.HIVE
+beeline run-plugin he-cancel <buy|sell> <order_id>           # Cancel an existing order
+
+# 🏭 TOKEN CREATION
+beeline run-plugin he-create <name> <symbol> [options]       # Create new token
+beeline run-plugin he-wizard                                 # Interactive token creation wizard
+beeline run-plugin he-issue <amount> <symbol> <to>           # Issue tokens (creator only)
 ```
 
 **Example Usage:**
@@ -598,10 +601,10 @@ beeline run-plugin he-test                # API connectivity test
 # Check your HiveEngine tokens
 beeline run-plugin he-tokens beggars
 
-# Get BEE token information
+# Get detailed BEE token information
 beeline run-plugin he-info BEE
 
-# View BEE market data
+# View BEE market data and prices
 beeline run-plugin he-market BEE
 
 # Transfer 10 BEE tokens to alice
@@ -610,17 +613,27 @@ beeline run-plugin he-transfer alice 10 BEE "Payment for services"
 # Stake 50 LEO tokens for rewards
 beeline run-plugin he-stake 50 LEO
 
-# Create a sell order: 100 LEO at 1.5 SWAP.HIVE each
-beeline run-plugin he-sell 100 LEO 1.5
+# Delegate 25 staked LEO tokens to alice
+beeline run-plugin he-delegate 25 LEO alice
 
-# Create a new token (command line)
-beeline run-plugin he-create "My Token" MYTOKEN --precision 8 --max-supply 1000000
+# Market trading examples
+beeline run-plugin he-sell 100 LEO 1.5          # Limit sell: 100 LEO at 1.5 SWAP.HIVE each
+beeline run-plugin he-market-buy 10 BEE          # Market buy: spend 10 SWAP.HIVE on BEE tokens
+beeline run-plugin he-market-sell 50 LEO         # Market sell: 50 LEO at current market rate
+beeline run-plugin he-cancel sell 64a5f2b1...    # Cancel a sell order
 
-# Create a new token (interactive UI)
-beeline run-plugin he-create-ui
+# Token creation
+beeline run-plugin he-create "My Token" MYTOKEN --precision 8 --max-supply 1000000  # Command line
+beeline run-plugin he-wizard                     # Interactive wizard (recommended)
+beeline run-plugin he-issue 1000 MYTOKEN alice   # Issue tokens to alice
 
-# Safe testing with mock mode
+# Advanced features
+beeline run-plugin he-nfts alice                 # View alice's NFT collections
+beeline run-plugin he-top 15                     # Top 15 tokens by volume
+
+# Safe testing with mock mode (highly recommended before live transactions)
 beeline run-plugin he-transfer alice 10 BEE --mock
+beeline run-plugin he-market-buy 5 LEO --mock
 beeline run-plugin he-create "Test Token" TEST --mock
 ```
 
