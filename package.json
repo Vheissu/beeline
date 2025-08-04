@@ -1,6 +1,6 @@
 {
   "name": "beeline-cli",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A terminal wallet for the Hive blockchain - type, sign, rule the chain",
   "main": "dist/index.js",
   "bin": {
