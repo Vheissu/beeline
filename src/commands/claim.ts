@@ -123,7 +123,7 @@ export default class Claim extends Command {
         ``,
         `${neonChalk.orange('Author Rewards:')} ${neonChalk.white(rewardHive.toFixed(3))} ${neonChalk.yellow('HIVE')}`,
         `${neonChalk.cyan('Curation Rewards:')} ${neonChalk.white(rewardHbd.toFixed(3))} ${neonChalk.yellow('HBD')}`,
-        `${neonChalk.electric('Vesting Rewards:')} ${neonChalk.white(rewardVests.toFixed(3))} ${neonChalk.yellow('VESTS')}`,
+        `${neonChalk.electric('Vesting Rewards:')} ${neonChalk.white(rewardVests.toFixed(6))} ${neonChalk.yellow('VESTS')}`,
         ``,
         `${neonChalk.green('💰 Total value available to claim!')}`
       ].join('\n');
@@ -191,7 +191,7 @@ export default class Claim extends Command {
         account,
         rewardHive.toFixed(3),
         rewardHbd.toFixed(3),
-        rewardVests.toFixed(3),
+        rewardVests.toFixed(6),
         pin
       );
       
@@ -209,7 +209,7 @@ export default class Claim extends Command {
         ``,
         `${neonChalk.orange('Claimed HIVE:')} ${rewardHive.toFixed(3)} HIVE`,
         `${neonChalk.cyan('Claimed HBD:')} ${rewardHbd.toFixed(3)} HBD`,
-        `${neonChalk.electric('Claimed VESTS:')} ${rewardVests.toFixed(3)} VESTS`,
+        `${neonChalk.electric('Claimed VESTS:')} ${rewardVests.toFixed(6)} VESTS`,
         ``,
         `${neonChalk.green('🎉 Rewards added to your balance!')}`,
         `${neonChalk.info('Claim confirmed in ~3 seconds')}`
@@ -254,7 +254,7 @@ export default class Claim extends Command {
         ``,
         `${neonChalk.orange('Mock Claimed HIVE:')} ${rewardHive.toFixed(3)} HIVE`,
         `${neonChalk.cyan('Mock Claimed HBD:')} ${rewardHbd.toFixed(3)} HBD`,
-        `${neonChalk.electric('Mock Claimed VESTS:')} ${rewardVests.toFixed(3)} VESTS`,
+        `${neonChalk.electric('Mock Claimed VESTS:')} ${rewardVests.toFixed(6)} VESTS`,
         ``,
         `${neonChalk.green('🎉 Mock rewards would be added to balance!')}`,
         `${neonChalk.info('Remove --mock flag to execute real claim')}`
