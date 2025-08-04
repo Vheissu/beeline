@@ -93,9 +93,14 @@ export default class Claim extends Command {
       }
       
       // Extract reward balances from account data
-      const rewardHive = parseFloat(accountData.reward_hive_balance?.split(' ')[0] || '0');
-      const rewardHbd = parseFloat(accountData.reward_hbd_balance?.split(' ')[0] || '0');
-      const rewardVests = parseFloat(accountData.reward_vesting_balance?.split(' ')[0] || '0');
+      const rewardHiveRaw = accountData.reward_hive_balance?.split(' ')[0] || '0.000';
+      const rewardHbdRaw = accountData.reward_hbd_balance?.split(' ')[0] || '0.000';
+      const rewardVestsRaw = accountData.reward_vesting_balance?.split(' ')[0] || '0.000000';
+      
+      // Parse for display and logic
+      const rewardHive = parseFloat(rewardHiveRaw);
+      const rewardHbd = parseFloat(rewardHbdRaw);
+      const rewardVests = parseFloat(rewardVestsRaw);
       
       // Check if there are any rewards to claim
       const hasRewards = rewardHive > 0 || rewardHbd > 0 || rewardVests > 0;
@@ -189,9 +194,9 @@ export default class Claim extends Command {
       // Execute reward claim
       const txId = await hiveClient.claimRewards(
         account,
-        rewardHive.toFixed(3),
-        rewardHbd.toFixed(3),
-        rewardVests.toFixed(6),
+        rewardHive > 0 ? rewardHiveRaw : '0.000',
+        rewardHbd > 0 ? rewardHbdRaw : '0.000', 
+        rewardVests > 0 ? rewardVestsRaw : '0.000000',
         pin
       );
       
@@ -207,9 +212,9 @@ export default class Claim extends Command {
         `${neonChalk.cyan('Transaction ID:')} ${neonChalk.highlight(txId)}`,
         `${neonChalk.magenta('Account:')} @${account}`,
         ``,
-        `${neonChalk.orange('Claimed HIVE:')} ${rewardHive.toFixed(3)} HIVE`,
-        `${neonChalk.cyan('Claimed HBD:')} ${rewardHbd.toFixed(3)} HBD`,
-        `${neonChalk.electric('Claimed VESTS:')} ${rewardVests.toFixed(6)} VESTS`,
+        `${neonChalk.orange('Claimed HIVE:')} ${rewardHive > 0 ? rewardHiveRaw : '0.000'} HIVE`,
+        `${neonChalk.cyan('Claimed HBD:')} ${rewardHbd > 0 ? rewardHbdRaw : '0.000'} HBD`,
+        `${neonChalk.electric('Claimed VESTS:')} ${rewardVests > 0 ? rewardVestsRaw : '0.000000'} VESTS`,
         ``,
         `${neonChalk.green('🎉 Rewards added to your balance!')}`,
         `${neonChalk.info('Claim confirmed in ~3 seconds')}`
@@ -252,9 +257,9 @@ export default class Claim extends Command {
         `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
         `${neonChalk.magenta('Account:')} @${account}`,
         ``,
-        `${neonChalk.orange('Mock Claimed HIVE:')} ${rewardHive.toFixed(3)} HIVE`,
-        `${neonChalk.cyan('Mock Claimed HBD:')} ${rewardHbd.toFixed(3)} HBD`,
-        `${neonChalk.electric('Mock Claimed VESTS:')} ${rewardVests.toFixed(6)} VESTS`,
+        `${neonChalk.orange('Mock Claimed HIVE:')} ${rewardHive > 0 ? rewardHive.toFixed(3) : '0.000'} HIVE`,
+        `${neonChalk.cyan('Mock Claimed HBD:')} ${rewardHbd > 0 ? rewardHbd.toFixed(3) : '0.000'} HBD`,
+        `${neonChalk.electric('Mock Claimed VESTS:')} ${rewardVests > 0 ? rewardVests.toFixed(6) : '0.000000'} VESTS`,
         ``,
         `${neonChalk.green('🎉 Mock rewards would be added to balance!')}`,
         `${neonChalk.info('Remove --mock flag to execute real claim')}`
