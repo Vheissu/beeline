@@ -93,9 +93,9 @@ export default class Claim extends Command {
       }
       
       // Extract reward balances from account data
-      const rewardHive = parseFloat((accountData as any).reward_hive_balance?.split(' ')[0] || '0');
-      const rewardHbd = parseFloat((accountData as any).reward_hbd_balance?.split(' ')[0] || '0');
-      const rewardVests = parseFloat((accountData as any).reward_vesting_balance?.split(' ')[0] || '0');
+      const rewardHive = parseFloat(accountData.reward_hive_balance?.split(' ')[0] || '0');
+      const rewardHbd = parseFloat(accountData.reward_hbd_balance?.split(' ')[0] || '0');
+      const rewardVests = parseFloat(accountData.reward_vesting_balance?.split(' ')[0] || '0');
       
       // Check if there are any rewards to claim
       const hasRewards = rewardHive > 0 || rewardHbd > 0 || rewardVests > 0;

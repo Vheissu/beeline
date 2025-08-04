@@ -18,6 +18,9 @@ export interface HiveAccount {
   savings_hbd_balance: string;
   delegated_vesting_shares: string;
   received_vesting_shares: string;
+  reward_hive_balance: string;
+  reward_hbd_balance: string;
+  reward_vesting_balance: string;
 }
 
 export class HiveClient {
@@ -55,7 +58,10 @@ export class HiveClient {
           savings_balance: typeof account.savings_balance === 'string' ? account.savings_balance : account.savings_balance.toString(),
           savings_hbd_balance: typeof account.savings_hbd_balance === 'string' ? account.savings_hbd_balance : account.savings_hbd_balance.toString(),
           delegated_vesting_shares: typeof account.delegated_vesting_shares === 'string' ? account.delegated_vesting_shares : account.delegated_vesting_shares.toString(),
-          received_vesting_shares: typeof account.received_vesting_shares === 'string' ? account.received_vesting_shares : account.received_vesting_shares.toString()
+          received_vesting_shares: typeof account.received_vesting_shares === 'string' ? account.received_vesting_shares : account.received_vesting_shares.toString(),
+          reward_hive_balance: typeof account.reward_hive_balance === 'string' ? account.reward_hive_balance : (account.reward_hive_balance ? account.reward_hive_balance.toString() : '0.000 HIVE'),
+          reward_hbd_balance: typeof account.reward_hbd_balance === 'string' ? account.reward_hbd_balance : (account.reward_hbd_balance ? account.reward_hbd_balance.toString() : '0.000 HBD'),
+          reward_vesting_balance: typeof account.reward_vesting_balance === 'string' ? account.reward_vesting_balance : (account.reward_vesting_balance ? account.reward_vesting_balance.toString() : '0.000 VESTS')
         };
       }
       return null;
