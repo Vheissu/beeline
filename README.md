@@ -13,13 +13,15 @@
 [![npm version](https://img.shields.io/npm/v/beeline-cli.svg)](https://www.npmjs.com/package/beeline-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> **🆕 Latest Updates:** Enhanced reward claiming with proper detection, improved balance display with powerdown status, and new `powerdown-status` command for tracking withdrawal schedules.
+
 ## ⚡ Features
 
 - 🌈 **Cyberpunk Aesthetic** - Full neon color palette with ASCII art and animated effects
 - 🔐 **Secure Key Management** - PIN-encrypted key storage with OS keychain integration
 - 🚀 **Password-Based Login** - Derive all keys from your master Hive password
 - 👥 **Multiple Account Support** - Manage unlimited Hive accounts in one wallet
-- 💰 **Complete Blockchain Operations** - Transfers, power up/down, savings (20% APR), reward claiming, RC monitoring
+- 💰 **Complete Blockchain Operations** - Transfers, power up/down, savings (20% APR), reward claiming, RC monitoring, powerdown status tracking
 - 🔌 **Plugin System** - Extensible architecture for HiveEngine, price tracking, and community plugins
 - 🛡️ **Security First** - Memory scrubbing, encrypted storage, zero-click paranoia
 - 📱 **Terminal Native** - Pure command line interface with neon styling
@@ -189,11 +191,11 @@ beeline keys set-default alice        # Set default account
 
 #### **Balance Commands**
 ```bash
-# Live balance checking
-beeline balance                       # Default account
+# Live balance checking (now includes powerdown status when active)
+beeline balance                       # Default account with powerdown info
 beeline balance alice                 # Specific account
 beeline balance @alice                # @ prefix accepted
-beeline balance alice --format json  # JSON output
+beeline balance alice --format json  # JSON output with powerdown data
 beeline balance alice --node custom  # Custom RPC node
 
 # Safe testing
@@ -254,6 +256,11 @@ beeline powerdown 5000 VESTS                     # Power down 5000 vesting share
 beeline powerdown 50 HP --from @alice            # Power down from specific account
 beeline powerdown 10 HP --mock                   # Test power down safely
 beeline powerdown 10 HP --confirm                # Skip confirmation prompt
+
+# Check powerdown status and schedule
+beeline powerdown-status                         # Check default account powerdown status
+beeline powerdown-status alice                   # Check specific account powerdown status
+beeline powerdown-status alice --format json     # JSON output format
 ```
 
 #### **Savings Operations (20% APR on HBD)**

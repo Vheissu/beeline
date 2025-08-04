@@ -74,16 +74,27 @@ export default class Balance extends Command {
       
       // Get balance data
       const balances = await hiveClient.getBalance(account);
+      const accountData = await hiveClient.getAccount(account);
       const nodeInfo = await hiveClient.getNodeInfo();
       
       clearInterval(spinner);
       process.stdout.write('\r' + ' '.repeat(80) + '\r');
       console.log('');
       
+      // Check powerdown status
+      const withdrawRate = parseFloat(accountData?.vesting_withdraw_rate?.split(' ')[0] || '0');
+      const isPoweringDown = withdrawRate > 0;
+      const nextWithdrawal = accountData?.next_vesting_withdrawal ? new Date(accountData.next_vesting_withdrawal) : null;
+      
       if (flags.format === 'json') {
         console.log(JSON.stringify({
           account,
           balances,
+          powerdown: {
+            is_powering_down: isPoweringDown,
+            vesting_withdraw_rate: accountData?.vesting_withdraw_rate || '0.000000 VESTS',
+            next_vesting_withdrawal: accountData?.next_vesting_withdrawal || null
+          },
           node: nodeInfo.url,
           last_block: nodeInfo.lastBlockNum,
           timestamp: new Date().toISOString()
@@ -97,24 +108,39 @@ export default class Balance extends Command {
         return num.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
       };
       
-      // Themed table display
-      const balanceDisplay = [
+      // Build balance display with optional powerdown info
+      let balanceDisplay = [
         `${theme.chalk.success('HIVE')}     ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.hive))} HIVE`,
         `${theme.chalk.accent('HBD')}      ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.hbd))} HBD`,
         `${theme.chalk.glow('HP')}       ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.hp))} HP`,
-        ``,
-        `${theme.chalk.info('SAVINGS')}`,
-        `${theme.chalk.success('├─ HIVE')} ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.savings_hive))} HIVE`,
-        `${theme.chalk.accent('└─ HBD')}  ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.savings_hbd))} HBD`
-      ].join('\n');
+        ``
+      ];
       
-      console.log(theme.createBox(balanceDisplay, `WALLET ${neonSymbols.star} @${account.toUpperCase()}`));
+      // Add powerdown status if active
+      if (isPoweringDown) {
+        balanceDisplay.push(`${theme.chalk.warning('POWERDOWN')} ${neonSymbols.warning}`);
+        balanceDisplay.push(`${theme.chalk.green('├─ Rate')}  ${neonSymbols.arrow} ${theme.chalk.highlight(withdrawRate.toFixed(6))} VESTS/week`);
+        if (nextWithdrawal) {
+          const isOverdue = nextWithdrawal < new Date();
+          balanceDisplay.push(`${theme.chalk.green('└─ Next')}  ${neonSymbols.arrow} ${isOverdue ? theme.chalk.warning('OVERDUE') : theme.chalk.white(nextWithdrawal.toLocaleDateString())}`);
+        }
+        balanceDisplay.push(``);
+      }
+      
+      balanceDisplay.push(`${theme.chalk.info('SAVINGS')}`);
+      balanceDisplay.push(`${theme.chalk.success('├─ HIVE')} ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.savings_hive))} HIVE`);
+      balanceDisplay.push(`${theme.chalk.accent('└─ HBD')}  ${neonSymbols.arrow} ${theme.chalk.highlight(formatBalance(balances.savings_hbd))} HBD`);
+      
+      console.log(theme.createBox(balanceDisplay.join('\n'), `WALLET ${neonSymbols.star} @${account.toUpperCase()}`));
       console.log('');
       
       // Status indicators
       console.log(theme.chalk.success(`${neonSymbols.check} Connected to Hive network`));
       console.log(theme.chalk.info(`${neonSymbols.bullet} Node: ${nodeInfo.url}`));
       console.log(theme.chalk.info(`${neonSymbols.bullet} Block: #${nodeInfo.lastBlockNum.toLocaleString()}`));
+      if (isPoweringDown) {
+        console.log(theme.chalk.warning(`${neonSymbols.bullet} Powerdown active - check status: ${theme.chalk.highlight('beeline powerdown-status')}`));
+      }
       console.log(theme.chalk.info(`${neonSymbols.bullet} Last updated: ${new Date().toLocaleTimeString()}`));
       
     } catch (error) {

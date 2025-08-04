@@ -21,6 +21,11 @@ export interface HiveAccount {
   reward_hive_balance: string;
   reward_hbd_balance: string;
   reward_vesting_balance: string;
+  // Powerdown/withdrawal fields
+  vesting_withdraw_rate: string;
+  next_vesting_withdrawal: string;
+  withdrawn: number;
+  to_withdraw: number;
 }
 
 export class HiveClient {
@@ -61,7 +66,12 @@ export class HiveClient {
           received_vesting_shares: typeof account.received_vesting_shares === 'string' ? account.received_vesting_shares : account.received_vesting_shares.toString(),
           reward_hive_balance: typeof account.reward_hive_balance === 'string' ? account.reward_hive_balance : (account.reward_hive_balance ? account.reward_hive_balance.toString() : '0.000 HIVE'),
           reward_hbd_balance: typeof account.reward_hbd_balance === 'string' ? account.reward_hbd_balance : (account.reward_hbd_balance ? account.reward_hbd_balance.toString() : '0.000 HBD'),
-          reward_vesting_balance: typeof account.reward_vesting_balance === 'string' ? account.reward_vesting_balance : (account.reward_vesting_balance ? account.reward_vesting_balance.toString() : '0.000 VESTS')
+          reward_vesting_balance: typeof account.reward_vesting_balance === 'string' ? account.reward_vesting_balance : (account.reward_vesting_balance ? account.reward_vesting_balance.toString() : '0.000 VESTS'),
+          // Powerdown/withdrawal fields
+          vesting_withdraw_rate: typeof account.vesting_withdraw_rate === 'string' ? account.vesting_withdraw_rate : (account.vesting_withdraw_rate ? account.vesting_withdraw_rate.toString() : '0.000000 VESTS'),
+          next_vesting_withdrawal: account.next_vesting_withdrawal ? account.next_vesting_withdrawal.toString() : '1969-12-31T23:59:59',
+          withdrawn: account.withdrawn ? parseInt(account.withdrawn.toString()) : 0,
+          to_withdraw: account.to_withdraw ? parseInt(account.to_withdraw.toString()) : 0
         };
       }
       return null;

@@ -93,18 +93,20 @@ The test suite provides comprehensive coverage for:
 
 ### ✅ CLI Commands
 - **Login Command** (`src/commands/login.ts`)
-  - Password-based authentication
-  - Key role management
-  - Account verification
-  - First-time user flow
-  - Error handling and validation
+  - Password-based login with key derivation
+  - Keychain integration tests
+  - PIN validation and encryption
 
 - **Balance Command** (`src/commands/balance.ts`)
-  - Balance display formatting
-  - Mock vs real data modes
-  - JSON and table output formats
-  - Custom node handling
-  - Error recovery
+  - Account balance fetching with powerdown status
+  - Mock mode testing
+  - JSON output format validation
+  - Enhanced display with powerdown information
+
+- **PowerDown Status Command** (`src/commands/powerdown-status.ts`)
+  - Powerdown progress tracking and schedule display
+  - JSON format support
+  - Time calculations and remaining withdrawal estimates
 
 ### ✅ Integration Tests
 - **Login → Balance Workflow**
