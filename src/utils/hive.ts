@@ -661,7 +661,9 @@ export class HiveClient {
 
       // Type filter - most important for default behavior
       if (filter.types && filter.types.length > 0) {
-        if (!filter.types.includes(opType)) return false;
+        if (!filter.types.includes(opType)) {
+          return false;
+        }
       }
 
       // Date range filter

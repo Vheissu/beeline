@@ -13,7 +13,7 @@
 [![npm version](https://img.shields.io/npm/v/beeline-cli.svg)](https://www.npmjs.com/package/beeline-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **🆕 Latest Updates:** Enhanced reward claiming with proper detection, improved balance display with powerdown status, and new `powerdown-status` command for tracking withdrawal schedules.
+> **🆕 Latest Updates:** Complete governance system with witness voting and proxy management, comprehensive transaction history with analytics and filtering, enhanced reward claiming, and powerdown status tracking.
 
 ## ⚡ Features
 
@@ -22,6 +22,8 @@
 - 🚀 **Password-Based Login** - Derive all keys from your master Hive password
 - 👥 **Multiple Account Support** - Manage unlimited Hive accounts in one wallet
 - 💰 **Complete Blockchain Operations** - Transfers, power up/down, savings (20% APR), reward claiming, RC monitoring, powerdown status tracking
+- 📊 **Transaction History** - Comprehensive history with analytics, filtering by type/amount/date
+- 🏛️ **Governance Operations** - Witness voting, proxy management, witness discovery
 - 🔌 **Plugin System** - Extensible architecture for HiveEngine, price tracking, and community plugins
 - 🛡️ **Security First** - Memory scrubbing, encrypted storage, zero-click paranoia
 - 📱 **Terminal Native** - Pure command line interface with neon styling
@@ -309,6 +311,75 @@ beeline rc alice --threshold 30                  # Custom warning threshold
 # Transaction capacity estimates included automatically
 ```
 
+#### **Transaction History Commands**
+```bash
+# View transaction history with filters and analytics
+beeline history                               # Default account history (last 100 transactions)
+beeline history alice                         # Specific account history
+beeline history alice --limit 50             # Limit number of transactions
+beeline history alice --type transfer        # Filter by operation type
+beeline history alice --type transfer --type power_up # Multiple operation types
+beeline history alice --currency HIVE        # Filter by currency
+beeline history alice --direction incoming   # Filter by direction (incoming/outgoing/all)
+beeline history alice --format json          # JSON output format
+
+# Advanced filtering
+beeline history alice --min-amount 10        # Transactions >= 10 units
+beeline history alice --max-amount 100       # Transactions <= 100 units
+beeline history alice --start-date 2024-01-01 # From specific date
+beeline history alice --end-date 2024-02-01  # Until specific date
+beeline history alice --analytics            # Show detailed analytics
+```
+
+**Transaction History Features:**
+- **Complete Operation Support**: transfers, power operations, rewards, savings, witness votes
+- **Smart Filtering**: by type, amount, currency, direction, date range
+- **Analytics Dashboard**: volume analysis, top recipients/senders, reward summaries
+- **Multiple Formats**: Table and JSON output with transaction details
+- **User-Friendly Display**: Human-readable descriptions and formatted amounts
+
+#### **Governance Commands** 
+```bash
+# Witness voting operations
+beeline governance vote <witness>             # Vote for a witness
+beeline governance unvote <witness>           # Remove witness vote
+beeline governance vote @blocktrades          # @ prefix optional
+beeline governance unvote @witness --from alice # Vote from specific account
+
+# Witness proxy operations  
+beeline governance proxy <account>            # Set witness voting proxy
+beeline governance unproxy                    # Clear current proxy
+beeline governance proxy @alice --from business # Set proxy from specific account
+
+# Witness discovery and information
+beeline governance witnesses                  # List top 30 witnesses by vote rank
+beeline governance witnesses --limit 10      # Show top 10 witnesses
+beeline governance witnesses --active        # Show only active witnesses
+beeline governance witnesses --limit 5 --active # Combine filters
+
+# Governance status and monitoring
+beeline governance status                     # View your governance status
+beeline governance status --from alice       # Check specific account status
+
+# Safe testing with mock mode (recommended first!)
+beeline governance vote @witness --mock      # Test voting safely
+beeline governance proxy @alice --mock       # Test proxy setting safely
+beeline governance unproxy --mock           # Test proxy clearing safely
+
+# Skip confirmation prompts (for automation)
+beeline governance vote @witness --confirm   # Skip confirmation prompt
+beeline governance proxy @alice --confirm    # Direct execution
+```
+
+**Governance Features:**
+- **Witness Voting**: Vote/unvote for witnesses with PIN-protected security
+- **Proxy Management**: Set/clear witness voting proxy accounts
+- **Witness Discovery**: View ranked witness lists with active/inactive filtering  
+- **Status Monitoring**: Track current votes, proxy settings, and voting power
+- **Multi-Account Support**: Vote from different accounts with `--from` flag
+- **Mock Mode**: Test all operations safely before executing
+- **Cyberpunk UI**: Full neon styling with animated spinners and status displays
+
 #### **Information Commands**
 ```bash
 beeline version                       # Version and system info
@@ -440,6 +511,60 @@ beeline login testaccount          # Test account
 beeline transfer @anyone 0.001 HIVE "API test" --from testaccount --mock
 ```
 
+### **Transaction History Use Cases**
+```bash
+# Business accounting and reconciliation
+beeline history business-account --analytics           # Comprehensive business analytics
+beeline history business-account --type transfer --currency HIVE  # HIVE transfers only
+beeline history business-account --start-date 2024-01-01 --end-date 2024-01-31  # Monthly records
+
+# Personal finance tracking
+beeline history alice --direction incoming --min-amount 10  # Major incoming payments
+beeline history alice --type author_reward --type curation_reward  # Content earnings
+beeline history alice --analytics --format json            # Detailed analytics export
+
+# Tax preparation and auditing
+beeline history creator --start-date 2024-01-01            # Year-to-date transactions
+beeline history creator --type transfer --direction outgoing # Business expenses
+beeline history creator --currency HBD --analytics         # HBD-specific analysis
+
+# Security monitoring
+beeline history alice --type transfer --direction outgoing  # Monitor outgoing transfers
+beeline history alice --min-amount 100                     # Large transactions only
+beeline history alice --limit 20                           # Recent activity check
+```
+
+### **Governance Use Cases**
+```bash
+# Individual witness participation
+beeline governance witnesses                        # Discover witness candidates
+beeline governance vote @blocktrades                # Vote for trusted witnesses
+beeline governance vote @gtg                        # Support multiple witnesses
+beeline governance status                           # Monitor your votes
+
+# Community proxy delegation
+beeline governance proxy @hive-community           # Delegate voting to community
+beeline governance proxy @witness-category         # Delegate to category expert
+beeline governance status                           # Verify proxy status
+
+# Multi-account governance management
+beeline governance vote @witness --from @business  # Business account voting
+beeline governance proxy @expert --from @personal  # Personal account proxy
+beeline governance status --from @business         # Check business votes
+beeline governance status --from @personal         # Check personal proxy
+
+# Witness evaluation and switching
+beeline governance witnesses --active --limit 10   # Top active witnesses
+beeline governance unvote @inactive-witness        # Remove votes from inactive
+beeline governance vote @new-witness               # Support new candidates
+beeline governance status                           # Verify changes
+
+# Safe governance testing
+beeline governance vote @test-witness --mock       # Test voting process
+beeline governance proxy @test-proxy --mock        # Test proxy setting
+beeline governance witnesses                        # Always safe to browse
+```
+
 ## 🎨 Cyberpunk Features
 
 ### Visual Style
@@ -518,6 +643,16 @@ beeline keys list                         # Local vault only
 # Test all commands safely
 beeline login testaccount --mock          # Will show error but safe
 beeline transfer @test 1 HIVE --mock      # Always works
+
+# Test history and governance operations (always safe - read-only)
+beeline history alice                      # Always safe - just reads blockchain data
+beeline governance witnesses               # Always safe - just reads blockchain data
+beeline governance status                  # Always safe - just reads blockchain data
+
+# Test governance operations safely
+beeline governance vote @witness --mock    # Test witness voting safely
+beeline governance proxy @alice --mock     # Test proxy setting safely
+beeline governance unproxy --mock         # Test proxy clearing safely
 ```
 
 ### **Recommended Testing Workflow**
@@ -528,10 +663,15 @@ beeline transfer @bob 1 HIVE "learning" --mock
 beeline powerup 10 HIVE --mock             # Learn power operations
 beeline deposit 100 HBD --mock             # Learn savings operations
 beeline claim --mock                       # Learn reward claiming
+beeline governance vote @witness --mock    # Learn governance operations
+beeline governance proxy @alice --mock     # Learn proxy operations
 
-# 2. Test account management (always safe)
+# 2. Test account management and information (always safe)
 beeline accounts list
 beeline keys list  
+beeline history alice                       # Read blockchain data safely
+beeline governance witnesses               # Read blockchain data safely
+beeline governance status                  # Read blockchain data safely  
 
 # 3. Only then proceed to real operations with small amounts
 beeline login testaccount                  # Use test account first!

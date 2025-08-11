@@ -41,7 +41,10 @@ export default class History extends Command {
         'transfer', 'transfer_to_vesting', 'withdraw_vesting', 
         'transfer_to_savings', 'transfer_from_savings',
         'claim_reward_balance', 'author_reward', 'curation_reward',
-        'delegate_vesting_shares', 'custom_json', 'vote', 'comment'
+        'delegate_vesting_shares', 'custom_json', 'vote', 'comment',
+        'account_witness_vote', 'account_witness_proxy', 'interest',
+        'fill_vesting_withdraw', 'fill_transfer_from_savings', 'limit_order_create',
+        'limit_order_cancel', 'convert', 'account_create', 'account_update'
       ],
       multiple: true
     }),
@@ -164,9 +167,10 @@ export default class History extends Command {
         direction: flags.direction !== 'all' ? flags.direction as 'incoming' | 'outgoing' : undefined
       };
       
-      // If no specific types are requested, default to monetary transactions (unless --all flag)
+      // If no specific types are requested, default to meaningful transactions (unless --all flag)
       if ((!flags.type || flags.type.length === 0) && !flags.all) {
         filter.types = [
+          // Monetary transactions
           'transfer',
           'transfer_to_vesting', 
           'withdraw_vesting',
@@ -177,7 +181,17 @@ export default class History extends Command {
           'curation_reward',
           'interest',
           'fill_vesting_withdraw',
-          'fill_transfer_from_savings'
+          'fill_transfer_from_savings',
+          // Content & Social transactions
+          'vote',
+          'comment',
+          // Governance transactions (actual operation types)
+          'account_witness_vote',
+          'account_witness_proxy',
+          // Delegation transactions
+          'delegate_vesting_shares',
+          // Account management
+          'account_update'
         ];
       }
       
