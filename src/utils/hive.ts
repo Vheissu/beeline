@@ -92,6 +92,37 @@ export interface TransactionAnalytics {
   };
 }
 
+export interface WitnessInfo {
+  owner: string;
+  created: string;
+  url: string;
+  votes: string;
+  virtual_last_update: string;
+  virtual_position: string;
+  virtual_scheduled_time: string;
+  total_missed: number;
+  last_aslot: number;
+  last_confirmed_block_num: number;
+  pow_worker: number;
+  signing_key: string;
+  props: {
+    account_creation_fee: string;
+    maximum_block_size: number;
+    hbd_interest_rate: number;
+  };
+  hbd_exchange_rate: {
+    base: string;
+    quote: string;
+  };
+  last_hbd_exchange_update: string;
+}
+
+export interface GovernanceStatus {
+  proxy: string | null;
+  witnessVotes: string[];
+  votingPower: string;
+}
+
 export interface HiveAccount {
   name: string;
   balance: string;
@@ -754,6 +785,109 @@ export class HiveClient {
       .slice(0, 10);
 
     return analytics;
+  }
+
+  // Governance operations
+  async witnessVote(
+    voter: string,
+    witness: string,
+    approve: boolean,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(voter, 'active', pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${voter}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+      
+      const operation: any = [
+        'account_witness_vote',
+        {
+          account: voter,
+          witness,
+          approve
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      
+      this.keyManager.scrubMemory(privateKeyWif);
+      
+      return result.id;
+    } catch (error) {
+      throw new Error(`Witness vote failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async witnessProxy(
+    account: string,
+    proxy: string,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(account, 'active', pin);
+      
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${account}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+      
+      const operation: any = [
+        'account_witness_proxy',
+        {
+          account,
+          proxy
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+      
+      this.keyManager.scrubMemory(privateKeyWif);
+      
+      return result.id;
+    } catch (error) {
+      throw new Error(`Witness proxy failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getWitnesses(limit: number = 30, activeOnly: boolean = false): Promise<WitnessInfo[]> {
+    try {
+      const witnesses = await this.client.database.call('get_witnesses_by_vote', ['', limit]);
+      
+      if (activeOnly) {
+        return witnesses.filter(w => w.signing_key !== 'STM1111111111111111111111111111111114T1Anm');
+      }
+      
+      return witnesses;
+    } catch (error) {
+      throw new Error(`Failed to fetch witnesses: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getGovernanceStatus(account: string): Promise<GovernanceStatus> {
+    try {
+      const accountData = await this.client.database.getAccounts([account]);
+      
+      if (!accountData || accountData.length === 0) {
+        throw new Error(`Account ${account} not found`);
+      }
+
+      const accountInfo = accountData[0];
+      
+      return {
+        proxy: accountInfo.proxy || null,
+        witnessVotes: accountInfo.witness_votes || [],
+        votingPower: (accountInfo.vesting_shares && typeof accountInfo.vesting_shares === 'string') 
+          ? accountInfo.vesting_shares 
+          : accountInfo.vesting_shares?.toString() || '0.000000 VESTS'
+      };
+    } catch (error) {
+      throw new Error(`Failed to get governance status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

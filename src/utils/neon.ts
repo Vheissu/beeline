@@ -114,7 +114,10 @@ export const neonSymbols = {
   info: 'ℹ',
   pause: '⏸',
   download: '⬇',
-  search: '🔍'
+  search: '🔍',
+  vote: '🗳',
+  proxy: '🔗',
+  list: '📋'
 };
 
 export async function createNeonBanner(text: string): Promise<string> {
