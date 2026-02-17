@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { getTheme, neonSymbols } from '../utils/neon.js';
+import { getTheme, neonSymbols, stopSpinner } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient, HiveTransaction, TransactionFilter, formatTransactionAmount, getTransactionDescription } from '../utils/hive.js';
 import * as fs from 'fs-extra';
@@ -210,8 +210,7 @@ export default class History extends Command {
         Object.keys(filter).length > 0 ? filter : undefined
       );
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       
       if (flags.debug) {
         console.log(theme.chalk.info(`${neonSymbols.bullet} Debug: Raw transaction count: ${transactions.length}`));
@@ -245,8 +244,7 @@ export default class History extends Command {
       }
       
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       
       console.log(theme.chalk.error(`${neonSymbols.cross} Failed to fetch history: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
@@ -649,12 +647,10 @@ export default class History extends Command {
     const spinner = theme.spinner('Loading transactions...');
     try {
       const transactions = await hiveClient.getAccountHistory(account, 100, -1, filter);
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       return transactions;
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       console.log(theme.chalk.error(`${neonSymbols.cross} Failed to load transactions: ${error instanceof Error ? error.message : 'Unknown error'}`));
       return [];
     }

@@ -37,6 +37,7 @@ jest.mock('@/utils/neon', () => ({
     bullet: '▶'
   },
   neonSpinner: jest.fn().mockReturnValue(123),
+  stopSpinner: jest.fn(),
   // @ts-ignore
   createNeonBanner: jest.fn().mockResolvedValue('ASCII BANNER'),
   createNeonGrid: jest.fn().mockReturnValue('GRID PATTERN')
@@ -508,10 +509,8 @@ describe('Login Command', () => {
 
       await loginCommand.run();
 
-      expect(clearInterval).toHaveBeenCalled();
-      expect(process.stdout.write).toHaveBeenCalledWith(
-        expect.stringContaining('\r')
-      );
+      const { stopSpinner } = await import('@/utils/neon');
+      expect(stopSpinner).toHaveBeenCalled();
     });
   });
 

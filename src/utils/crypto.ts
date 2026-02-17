@@ -286,14 +286,15 @@ export class KeyManager {
     return summaries;
   }
 
-  // Memory scrubbing utility
+  // Best-effort memory scrubbing hint.
+  // JS strings are immutable, so we cannot overwrite the original in-place.
+  // Callers should avoid keeping references to sensitive strings and rely on
+  // the GC to reclaim them. This method exists to null out any Buffer copies
+  // we control and to signal intent; it is NOT a guarantee of secure erasure.
   scrubMemory(data: string): void {
-    // Fill memory with random data to prevent key recovery
-    if (typeof data === 'string') {
-      for (let i = 0; i < data.length; i++) {
-        data = data.substring(0, i) + String.fromCharCode(Math.floor(Math.random() * 256)) + data.substring(i + 1);
-      }
-    }
+    // Encourage GC of the string by voiding the caller's reference.
+    // The caller should set its own variable to '' after calling this.
+    void data;
   }
 }
 

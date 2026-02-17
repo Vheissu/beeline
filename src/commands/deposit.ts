@@ -5,7 +5,7 @@ import { HiveClient } from '../utils/hive.js';
 import inquirer from 'inquirer';
 
 export default class Deposit extends Command {
-  static override description = 'Deposit HIVE or HBD to savings with 20% APR and cyberpunk style';
+  static override description = 'Deposit HIVE or HBD to savings (HBD earns interest set by witnesses)';
   
   static override examples = [
     `$ beeline deposit 100 HIVE`,
@@ -94,7 +94,7 @@ export default class Deposit extends Command {
     console.log('');
     
     // Display deposit details
-    const aprText = currency === 'HBD' ? neonChalk.green('20% APR') : neonChalk.darkCyan('No interest');
+    const aprText = currency === 'HBD' ? neonChalk.green('HBD savings interest (rate set by witnesses)') : neonChalk.darkCyan('No interest');
     const depositDetails = [
       `${neonChalk.cyan('FROM')}     ${neonSymbols.arrow} ${neonChalk.highlight('@' + fromAccount)}`,
       `${neonChalk.magenta('TO')}       ${neonSymbols.arrow} ${neonChalk.highlight('@' + toAccount)}`,
@@ -177,7 +177,7 @@ export default class Deposit extends Command {
         `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
         memo ? `${neonChalk.pink('Memo:')} "${memo}"` : '',
         `${neonChalk.green('Status:')} Deposited to savings instantly`,
-        currency === 'HBD' ? `${neonChalk.cyan('Interest:')} 20% APR starts immediately` : '',
+        currency === 'HBD' ? `${neonChalk.cyan('Interest:')} HBD savings interest starts immediately` : '',
         ``,
         `${neonChalk.info('Deposit confirmed in ~3 seconds')}`
       ].filter(Boolean).join('\n');
@@ -203,32 +203,31 @@ export default class Deposit extends Command {
     }
   }
   
-  private simulateDeposit(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', memo: string): void {
+  private async simulateDeposit(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', memo: string): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating savings deposit...`));
     console.log('');
 
-    // Simulate some processing time
-    setTimeout(() => {
-      const mockTxId = generateMockTxId();
-      
-      console.log(neonChalk.success(`${neonSymbols.check} Savings deposit simulation complete!`));
-      console.log('');
-      
-      const simulationMessage = [
-        `${neonChalk.warning('SIMULATION ONLY - NO REAL DEPOSIT')}`,
-        ``,
-        `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
-        `${neonChalk.magenta('From:')} @${from}`,
-        `${neonChalk.electric('To:')} @${to}`,
-        `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
-        memo ? `${neonChalk.pink('Memo:')} "${memo}"` : '',
-        `${neonChalk.green('Mock Status:')} Would be deposited to savings instantly`,
-        currency === 'HBD' ? `${neonChalk.cyan('Mock Interest:')} 20% APR would start immediately` : '',
-        ``,
-        `${neonChalk.info('Remove --mock flag to execute real deposit')}`
-      ].filter(Boolean).join('\n');
-      
-      console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
-    }, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const mockTxId = generateMockTxId();
+
+    console.log(neonChalk.success(`${neonSymbols.check} Savings deposit simulation complete!`));
+    console.log('');
+
+    const simulationMessage = [
+      `${neonChalk.warning('SIMULATION ONLY - NO REAL DEPOSIT')}`,
+      ``,
+      `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
+      `${neonChalk.magenta('From:')} @${from}`,
+      `${neonChalk.electric('To:')} @${to}`,
+      `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
+      memo ? `${neonChalk.pink('Memo:')} "${memo}"` : '',
+      `${neonChalk.green('Mock Status:')} Would be deposited to savings instantly`,
+      currency === 'HBD' ? `${neonChalk.cyan('Interest:')} HBD savings interest would start immediately` : '',
+      ``,
+      `${neonChalk.info('Remove --mock flag to execute real deposit')}`
+    ].filter(Boolean).join('\n');
+
+    console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
   }
 }

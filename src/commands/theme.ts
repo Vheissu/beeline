@@ -16,6 +16,8 @@ export default class Theme extends Command {
     '<%= config.bin %> <%= command.id %> list',
     '<%= config.bin %> <%= command.id %> set cyberpunk',
     '<%= config.bin %> <%= command.id %> set matrix',
+    '<%= config.bin %> <%= command.id %> set dracula',
+    '<%= config.bin %> <%= command.id %> set hive',
     '<%= config.bin %> <%= command.id %> preview matrix'
   ];
 

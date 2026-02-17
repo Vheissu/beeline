@@ -108,10 +108,10 @@ export default class Balance extends Command {
       // Add powerdown status if active
       if (isPoweringDown) {
         balanceDisplay.push(`${theme.chalk.warning('POWERDOWN')} ${neonSymbols.warning}`);
-        balanceDisplay.push(`${theme.chalk.green('├─ Rate')}  ${neonSymbols.arrow} ${theme.chalk.highlight(withdrawRate.toFixed(6))} VESTS/week`);
+        balanceDisplay.push(`${theme.chalk.info('├─ Rate')}  ${neonSymbols.arrow} ${theme.chalk.highlight(withdrawRate.toFixed(6))} VESTS/week`);
         if (nextWithdrawal) {
           const isOverdue = nextWithdrawal < new Date();
-          balanceDisplay.push(`${theme.chalk.green('└─ Next')}  ${neonSymbols.arrow} ${isOverdue ? theme.chalk.warning('OVERDUE') : theme.chalk.white(nextWithdrawal.toLocaleDateString())}`);
+          balanceDisplay.push(`${theme.chalk.info('└─ Next')}  ${neonSymbols.arrow} ${isOverdue ? theme.chalk.warning('OVERDUE') : theme.chalk.highlight(nextWithdrawal.toLocaleDateString())}`);
         }
         balanceDisplay.push(``);
       }

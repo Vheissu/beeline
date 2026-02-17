@@ -192,30 +192,29 @@ export default class Transfer extends Command {
     }
   }
   
-  private simulateTransfer(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', memo: string): void {
+  private async simulateTransfer(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', memo: string): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating transfer...`));
     console.log('');
 
-    // Simulate some processing time
-    setTimeout(() => {
-      const mockTxId = generateMockTxId();
-      
-      console.log(neonChalk.success(`${neonSymbols.check} Transfer simulation complete!`));
-      console.log('');
-      
-      const simulationMessage = [
-        `${neonChalk.warning('SIMULATION ONLY - NO REAL TRANSFER')}`,
-        ``,
-        `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
-        `${neonChalk.magenta('From:')} @${from}`,
-        `${neonChalk.electric('To:')} @${to}`,
-        `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
-        memo ? `${neonChalk.pink('Memo:')} "${memo}"` : '',
-        ``,
-        `${neonChalk.info('Remove --mock flag to execute real transfer')}`
-      ].filter(Boolean).join('\n');
-      
-      console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
-    }, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const mockTxId = generateMockTxId();
+
+    console.log(neonChalk.success(`${neonSymbols.check} Transfer simulation complete!`));
+    console.log('');
+
+    const simulationMessage = [
+      `${neonChalk.warning('SIMULATION ONLY - NO REAL TRANSFER')}`,
+      ``,
+      `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
+      `${neonChalk.magenta('From:')} @${from}`,
+      `${neonChalk.electric('To:')} @${to}`,
+      `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
+      memo ? `${neonChalk.pink('Memo:')} "${memo}"` : '',
+      ``,
+      `${neonChalk.info('Remove --mock flag to execute real transfer')}`
+    ].filter(Boolean).join('\n');
+
+    console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
   }
 }

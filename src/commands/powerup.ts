@@ -194,30 +194,29 @@ export default class PowerUp extends Command {
     }
   }
   
-  private simulatePowerUp(from: string, to: string, amount: number): void {
+  private async simulatePowerUp(from: string, to: string, amount: number): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating power up...`));
     console.log('');
 
-    // Simulate some processing time
-    setTimeout(() => {
-      const mockTxId = generateMockTxId();
-      
-      console.log(neonChalk.success(`${neonSymbols.check} Power up simulation complete!`));
-      console.log('');
-      
-      const simulationMessage = [
-        `${neonChalk.warning('SIMULATION ONLY - NO REAL POWER UP')}`,
-        ``,
-        `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
-        `${neonChalk.magenta('From:')} @${from}`,
-        `${neonChalk.electric('To:')} @${to}`,
-        `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} HIVE`,
-        `${neonChalk.pink('Mock Result:')} +${amount.toFixed(3)} Hive Power`,
-        ``,
-        `${neonChalk.info('Remove --mock flag to execute real power up')}`
-      ].join('\n');
-      
-      console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
-    }, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const mockTxId = generateMockTxId();
+
+    console.log(neonChalk.success(`${neonSymbols.check} Power up simulation complete!`));
+    console.log('');
+
+    const simulationMessage = [
+      `${neonChalk.warning('SIMULATION ONLY - NO REAL POWER UP')}`,
+      ``,
+      `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
+      `${neonChalk.magenta('From:')} @${from}`,
+      `${neonChalk.electric('To:')} @${to}`,
+      `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} HIVE`,
+      `${neonChalk.pink('Mock Result:')} +${amount.toFixed(3)} Hive Power`,
+      ``,
+      `${neonChalk.info('Remove --mock flag to execute real power up')}`
+    ].join('\n');
+
+    console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
   }
 }

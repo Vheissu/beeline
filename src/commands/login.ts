@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner, createNeonBanner, createNeonGrid } from '../utils/neon.js';
+import { neonChalk, createNeonBox, neonSymbols, neonSpinner, stopSpinner, createNeonBanner, createNeonGrid } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 import inquirer from 'inquirer';
@@ -103,8 +103,7 @@ export default class Login extends Command {
         const hiveClient = new HiveClient(keyManager);
         const accountData = await hiveClient.getAccount(account);
         
-        clearInterval(verifySpinner);
-        process.stdout.write('\r' + ' '.repeat(80) + '\r');
+        stopSpinner(verifySpinner);
         
         if (!accountData) {
           console.log(neonChalk.error(`${neonSymbols.cross} Account @${account} not found on Hive blockchain`));
@@ -115,8 +114,7 @@ export default class Login extends Command {
         console.log(neonChalk.success(`${neonSymbols.check} Account verified on blockchain`));
         console.log('');
       } catch (error) {
-        clearInterval(verifySpinner);
-        process.stdout.write('\r' + ' '.repeat(80) + '\r');
+        stopSpinner(verifySpinner);
         console.log(neonChalk.warning(`${neonSymbols.warning} Could not verify account: ${error instanceof Error ? error.message : 'Unknown error'}`));
         console.log(neonChalk.info('Proceeding anyway...'));
         console.log('');
@@ -161,8 +159,7 @@ export default class Login extends Command {
       // Perform login with password derivation
       await keyManager.loginWithPassword(account, passwordPrompt.password, pin, roles);
       
-      clearInterval(loginSpinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(loginSpinner);
       
       console.log(neonChalk.success(`${neonSymbols.check} Login successful!`));
       console.log('');
@@ -204,8 +201,7 @@ export default class Login extends Command {
       if (pin) keyManager.scrubMemory(pin);
       
     } catch (error) {
-      clearInterval(loginSpinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(loginSpinner);
       
       console.log(neonChalk.error(`${neonSymbols.cross} Login failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');

@@ -16,10 +16,7 @@ module.exports = {
     '/tests/utils/'
   ],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  globals: {
-    'ts-jest': {
+    '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         moduleResolution: 'node',
         baseUrl: '.',
@@ -28,7 +25,7 @@ module.exports = {
           '@tests/*': ['tests/*']
         }
       }
-    }
+    }],
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',

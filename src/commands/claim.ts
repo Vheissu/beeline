@@ -224,32 +224,31 @@ export default class Claim extends Command {
     }
   }
   
-  private simulateClaim(account: string, rewardHive: number, rewardHbd: number, rewardVests: number): void {
+  private async simulateClaim(account: string, rewardHive: number, rewardHbd: number, rewardVests: number): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating reward claim...`));
     console.log('');
 
-    // Simulate some processing time
-    setTimeout(() => {
-      const mockTxId = generateMockTxId();
-      
-      console.log(neonChalk.success(`${neonSymbols.check} Reward claim simulation complete!`));
-      console.log('');
-      
-      const simulationMessage = [
-        `${neonChalk.warning('SIMULATION ONLY - NO REAL CLAIM')}`,
-        ``,
-        `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
-        `${neonChalk.magenta('Account:')} @${account}`,
-        ``,
-        `${neonChalk.orange('Mock Claimed HIVE:')} ${rewardHive > 0 ? rewardHive.toFixed(3) : '0.000'} HIVE`,
-        `${neonChalk.cyan('Mock Claimed HBD:')} ${rewardHbd > 0 ? rewardHbd.toFixed(3) : '0.000'} HBD`,
-        `${neonChalk.electric('Mock Claimed VESTS:')} ${rewardVests > 0 ? rewardVests.toFixed(6) : '0.000000'} VESTS`,
-        ``,
-        `${neonChalk.green('🎉 Mock rewards would be added to balance!')}`,
-        `${neonChalk.info('Remove --mock flag to execute real claim')}`
-      ].join('\n');
-      
-      console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
-    }, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const mockTxId = generateMockTxId();
+
+    console.log(neonChalk.success(`${neonSymbols.check} Reward claim simulation complete!`));
+    console.log('');
+
+    const simulationMessage = [
+      `${neonChalk.warning('SIMULATION ONLY - NO REAL CLAIM')}`,
+      ``,
+      `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
+      `${neonChalk.magenta('Account:')} @${account}`,
+      ``,
+      `${neonChalk.orange('Mock Claimed HIVE:')} ${rewardHive > 0 ? rewardHive.toFixed(3) : '0.000'} HIVE`,
+      `${neonChalk.cyan('Mock Claimed HBD:')} ${rewardHbd > 0 ? rewardHbd.toFixed(3) : '0.000'} HBD`,
+      `${neonChalk.electric('Mock Claimed VESTS:')} ${rewardVests > 0 ? rewardVests.toFixed(6) : '0.000000'} VESTS`,
+      ``,
+      `${neonChalk.green('🎉 Mock rewards would be added to balance!')}`,
+      `${neonChalk.info('Remove --mock flag to execute real claim')}`
+    ].join('\n');
+
+    console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
   }
 }

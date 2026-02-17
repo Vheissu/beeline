@@ -1,6 +1,5 @@
-import { Client, PrivateKey, cryptoUtils, Asset } from '@hiveio/dhive';
+import { Client, PrivateKey } from '@hiveio/dhive';
 import { KeyManager } from './crypto.js';
-import * as fs from 'fs-extra';
 
 export interface HiveBalance {
   hive: string;
@@ -525,18 +524,9 @@ export class HiveClient {
     filter?: TransactionFilter
   ): Promise<HiveTransaction[]> {
     try {
-      let operationFilterLow = 0;
-      let operationFilterHigh = 0;
-      
-      // Apply operation type filtering - but only if we have specific types
-      // For now, let's get all transactions and filter client-side
-      if (filter?.types && filter.types.length > 0) {
-        const operationBits = this.getOperationBits(filter.types);
-        operationFilterLow = operationBits.low;
-        operationFilterHigh = operationBits.high;
-      }
-
-      // Use the simpler 3-parameter version first to debug
+      // Fetch all operations and apply filters client-side.
+      // The Hive API supports server-side bitfield filters but the
+      // simpler 3-parameter call is more portable across API nodes.
       const history = await this.client.database.call('get_account_history', [
         username,
         start,
@@ -562,93 +552,6 @@ export class HiveClient {
     } catch (error) {
       throw new Error(`Failed to fetch account history: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }
-
-  private getOperationBits(operationTypes: string[]): { low: number; high: number } {
-    const operationMap: Record<string, number> = {
-      'vote': 0,
-      'comment': 1,
-      'transfer': 2,
-      'transfer_to_vesting': 3,
-      'withdraw_vesting': 4,
-      'limit_order_create': 5,
-      'limit_order_cancel': 6,
-      'feed_publish': 7,
-      'convert': 8,
-      'account_create': 9,
-      'account_update': 10,
-      'witness_update': 11,
-      'account_witness_vote': 12,
-      'account_witness_proxy': 13,
-      'pow': 14,
-      'custom': 15,
-      'report_over_production': 16,
-      'delete_comment': 17,
-      'custom_json': 18,
-      'comment_options': 19,
-      'set_withdraw_vesting_route': 20,
-      'limit_order_create2': 21,
-      'claim_account': 22,
-      'create_claimed_account': 23,
-      'request_account_recovery': 24,
-      'recover_account': 25,
-      'change_recovery_account': 26,
-      'escrow_transfer': 27,
-      'escrow_dispute': 28,
-      'escrow_release': 29,
-      'pow2': 30,
-      'escrow_approve': 31,
-      'transfer_to_savings': 32,
-      'transfer_from_savings': 33,
-      'cancel_transfer_from_savings': 34,
-      'custom_binary': 35,
-      'decline_voting_rights': 36,
-      'reset_account': 37,
-      'set_reset_account': 38,
-      'claim_reward_balance': 39,
-      'delegate_vesting_shares': 40,
-      'account_create_with_delegation': 41,
-      'witness_set_properties': 42,
-      'account_update2': 43,
-      'create_proposal': 44,
-      'update_proposal_votes': 45,
-      'remove_proposal': 46,
-      'update_proposal': 47,
-      'collateralized_convert': 48,
-      'recurrent_transfer': 49,
-      // Virtual operations start at higher numbers
-      'fill_convert_request': 50,
-      'author_reward': 51,
-      'curation_reward': 52,
-      'comment_reward': 53,
-      'liquidity_reward': 54,
-      'interest': 55,
-      'fill_vesting_withdraw': 56,
-      'fill_order': 57,
-      'shutdown_witness': 58,
-      'fill_transfer_from_savings': 59,
-      'hardfork': 60,
-      'comment_payout_update': 61,
-      'return_vesting_delegation': 62,
-      'comment_benefactor_reward': 63,
-      'producer_reward': 64
-    };
-
-    let low = 0;
-    let high = 0;
-
-    for (const opType of operationTypes) {
-      const bitPosition = operationMap[opType];
-      if (bitPosition !== undefined) {
-        if (bitPosition < 64) {
-          low |= (1 << bitPosition);
-        } else {
-          high |= (1 << (bitPosition - 64));
-        }
-      }
-    }
-
-    return { low, high };
   }
 
   private filterTransactions(transactions: HiveTransaction[], account: string, filter?: TransactionFilter): HiveTransaction[] {

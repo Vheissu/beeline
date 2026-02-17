@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner } from '../utils/neon.js';
+import { neonChalk, createNeonBox, neonSymbols, neonSpinner, stopSpinner } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 import inquirer from 'inquirer';
@@ -194,14 +194,12 @@ ${flags.mock ? neonChalk.yellow.bold('\n⚠️  MOCK MODE - No transaction will 
     try {
       const txId = await hiveClient.witnessVote(fromAccount, cleanWitness, approve, pin);
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       
       console.log(neonChalk.green(`✓ Witness ${approve ? 'vote' : 'unvote'} successful!`));
       console.log(neonChalk.white.dim(`Transaction ID: ${txId}`));
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       throw error;
     }
   }
@@ -304,14 +302,12 @@ ${flags.mock ? neonChalk.yellow.bold('\n⚠️  MOCK MODE - No transaction will 
     try {
       const txId = await hiveClient.witnessProxy(fromAccount, cleanProxy, pin);
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       
       console.log(neonChalk.green(`✓ Proxy operation successful!`));
       console.log(neonChalk.white.dim(`Transaction ID: ${txId}`));
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       throw error;
     }
   }
@@ -321,8 +317,7 @@ ${flags.mock ? neonChalk.yellow.bold('\n⚠️  MOCK MODE - No transaction will 
 
     try {
       const witnesses = await hiveClient.getWitnesses(flags.limit, flags.active);
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
 
       console.log(createNeonBox(`
 ${neonSymbols.list} ${neonChalk.cyan.bold('HIVE WITNESSES')} ${neonSymbols.list}
@@ -343,8 +338,7 @@ ${neonChalk.white.dim('Displaying top')} ${neonChalk.white(witnesses.length)} ${
       });
 
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       throw error;
     }
   }
@@ -363,8 +357,7 @@ ${neonChalk.white.dim('Displaying top')} ${neonChalk.white(witnesses.length)} ${
 
     try {
       const status = await hiveClient.getGovernanceStatus(account);
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
 
       console.log(createNeonBox(`
 ${neonSymbols.info} ${neonChalk.cyan.bold('GOVERNANCE STATUS')} ${neonSymbols.info}
@@ -379,8 +372,7 @@ ${status.witnessVotes.map(w => neonChalk.white(`  • ${w}`)).join('\n')}
       `.trim()));
 
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       throw error;
     }
   }

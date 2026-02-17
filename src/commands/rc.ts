@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner } from '../utils/neon.js';
+import { neonChalk, createNeonBox, neonSymbols, neonSpinner, stopSpinner } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 
@@ -45,17 +45,17 @@ export default class RC extends Command {
 
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(RC);
-    
+
     const keyManager = new KeyManager();
     await keyManager.initialize();
-    
+
     let account = args.account;
-    
+
     // Clean @ prefix if provided
     if (account?.startsWith('@')) {
       account = account.substring(1);
     }
-    
+
     // Use default account if no account specified
     if (!account) {
       account = keyManager.getDefaultAccount();
@@ -65,29 +65,26 @@ export default class RC extends Command {
         return;
       }
     }
-    
+
+    const hiveClient = new HiveClient(keyManager, flags.node);
+
     if (flags.watch) {
-      return this.watchRC(account, flags.node, flags.threshold);
+      return this.watchRC(account, hiveClient, flags.threshold);
     }
-    
-    await this.checkRC(account, flags.node, flags.format, flags.threshold);
+
+    await this.checkRC(account, hiveClient, flags.format, flags.threshold);
   }
   
-  private async checkRC(account: string, nodeUrl?: string, format: string = 'table', threshold: number = 20): Promise<void> {
+  private async checkRC(account: string, hiveClient: HiveClient, format: string = 'table', threshold: number = 20): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Checking Resource Credits...`));
     console.log('');
-    
+
     const spinner = neonSpinner('Fetching RC data from Hive blockchain');
-    
+
     try {
-      const keyManager = new KeyManager();
-      await keyManager.initialize();
-      
-      const hiveClient = new HiveClient(keyManager, nodeUrl);
       const rcData = await hiveClient.getResourceCredits(account);
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       
       if (format === 'json') {
         console.log(JSON.stringify({
@@ -126,8 +123,7 @@ export default class RC extends Command {
       console.log(this.getTransactionEstimates(rcData.current));
       
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       
       console.log(neonChalk.error(`${neonSymbols.cross} RC check failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
@@ -138,17 +134,13 @@ export default class RC extends Command {
     }
   }
   
-  private async watchRC(account: string, nodeUrl?: string, threshold: number = 20): Promise<void> {
+  private async watchRC(account: string, hiveClient: HiveClient, threshold: number = 20): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Watching Resource Credits for @${account}...`));
     console.log(neonChalk.info('💡 Updates every 30 seconds. Press Ctrl+C to stop.'));
     console.log('');
-    
+
     const checkRCContinuously = async () => {
       try {
-        const keyManager = new KeyManager();
-        await keyManager.initialize();
-        
-        const hiveClient = new HiveClient(keyManager, nodeUrl);
         const rcData = await hiveClient.getResourceCredits(account);
         
         // Clear screen and show timestamp

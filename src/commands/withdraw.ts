@@ -209,32 +209,31 @@ export default class Withdraw extends Command {
     }
   }
   
-  private simulateWithdrawal(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', requestId: number, memo: string): void {
+  private async simulateWithdrawal(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', requestId: number, memo: string): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating savings withdrawal...`));
     console.log('');
 
-    // Simulate some processing time
-    setTimeout(() => {
-      const mockTxId = generateMockTxId();
-      
-      console.log(neonChalk.success(`${neonSymbols.check} Savings withdrawal simulation complete!`));
-      console.log('');
-      
-      const simulationMessage = [
-        `${neonChalk.warning('SIMULATION ONLY - NO REAL WITHDRAWAL')}`,
-        ``,
-        `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
-        `${neonChalk.magenta('From:')} @${from} (savings)`,
-        `${neonChalk.electric('To:')} @${to}`,
-        `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
-        `${neonChalk.pink('Mock Request ID:')} ${requestId}`,
-        memo ? `${neonChalk.white('Memo:')} "${memo}"` : '',
-        `${neonChalk.yellow('Mock Status:')} Would process for 3 days`,
-        ``,
-        `${neonChalk.info('Remove --mock flag to execute real withdrawal')}`
-      ].filter(Boolean).join('\n');
-      
-      console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
-    }, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const mockTxId = generateMockTxId();
+
+    console.log(neonChalk.success(`${neonSymbols.check} Savings withdrawal simulation complete!`));
+    console.log('');
+
+    const simulationMessage = [
+      `${neonChalk.warning('SIMULATION ONLY - NO REAL WITHDRAWAL')}`,
+      ``,
+      `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
+      `${neonChalk.magenta('From:')} @${from} (savings)`,
+      `${neonChalk.electric('To:')} @${to}`,
+      `${neonChalk.orange('Amount:')} ${amount.toFixed(3)} ${currency}`,
+      `${neonChalk.pink('Mock Request ID:')} ${requestId}`,
+      memo ? `${neonChalk.white('Memo:')} "${memo}"` : '',
+      `${neonChalk.yellow('Mock Status:')} Would process for 3 days`,
+      ``,
+      `${neonChalk.info('Remove --mock flag to execute real withdrawal')}`
+    ].filter(Boolean).join('\n');
+
+    console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
   }
 }

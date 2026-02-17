@@ -97,7 +97,7 @@ export default class PowerDown extends Command {
       unit === 'HP' ? `${neonChalk.electric('VESTS')}     ${neonSymbols.arrow} ${neonChalk.white(vestingAmount.toFixed(3))} ${neonChalk.cyan('VESTS')}` : '',
       `${neonChalk.orange('DURATION')}  ${neonSymbols.arrow} ${neonChalk.white('13 weeks')} ${neonChalk.darkCyan('(weekly payments)')}`,
       ``,
-      `${neonChalk.warning('⚠️  Power down is irreversible and takes 13 weeks to complete')}`,
+      `${neonChalk.warning('⚠️  Power down takes 13 weeks (can be cancelled with a new 0-amount power down)')}`,
       `${neonChalk.darkCyan('Transaction will be signed with your active key')}`
     ].filter(Boolean).join('\n');
     
@@ -116,7 +116,7 @@ export default class PowerDown extends Command {
         name: 'confirm',
         message: flags.mock ? 
           neonChalk.cyan('Simulate this power down?') : 
-          neonChalk.warning('Execute this power down? This will take 13 weeks to complete and cannot be undone.'),
+          neonChalk.warning('Execute this power down? This will take 13 weeks to complete.'),
         default: false
       }]);
 
@@ -192,30 +192,29 @@ export default class PowerDown extends Command {
     }
   }
   
-  private simulatePowerDown(from: string, amount: number, unit: string, vestingAmount: number): void {
+  private async simulatePowerDown(from: string, amount: number, unit: string, vestingAmount: number): Promise<void> {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating power down...`));
     console.log('');
 
-    // Simulate some processing time
-    setTimeout(() => {
-      const mockTxId = generateMockTxId();
-      
-      console.log(neonChalk.success(`${neonSymbols.check} Power down simulation complete!`));
-      console.log('');
-      
-      const simulationMessage = [
-        `${neonChalk.warning('SIMULATION ONLY - NO REAL POWER DOWN')}`,
-        ``,
-        `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
-        `${neonChalk.magenta('Account:')} @${from}`,
-        `${neonChalk.electric('Amount:')} ${amount.toFixed(3)} ${unit}`,
-        `${neonChalk.orange('Mock Vesting Shares:')} ${vestingAmount.toFixed(3)} VESTS`,
-        `${neonChalk.pink('Mock Duration:')} 13 weeks (weekly payments)`,
-        ``,
-        `${neonChalk.info('Remove --mock flag to execute real power down')}`
-      ].join('\n');
-      
-      console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
-    }, 1500);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const mockTxId = generateMockTxId();
+
+    console.log(neonChalk.success(`${neonSymbols.check} Power down simulation complete!`));
+    console.log('');
+
+    const simulationMessage = [
+      `${neonChalk.warning('SIMULATION ONLY - NO REAL POWER DOWN')}`,
+      ``,
+      `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
+      `${neonChalk.magenta('Account:')} @${from}`,
+      `${neonChalk.electric('Amount:')} ${amount.toFixed(3)} ${unit}`,
+      `${neonChalk.orange('Mock Vesting Shares:')} ${vestingAmount.toFixed(3)} VESTS`,
+      `${neonChalk.pink('Mock Duration:')} 13 weeks (weekly payments)`,
+      ``,
+      `${neonChalk.info('Remove --mock flag to execute real power down')}`
+    ].join('\n');
+
+    console.log(createNeonBox(simulationMessage, `${neonSymbols.star} SIMULATION RESULT ${neonSymbols.star}`));
   }
 }

@@ -42,6 +42,92 @@ export const matrixGradients = {
   terminal: gradient(['#00FF00', '#008F11'])
 };
 
+export const draculaColors = {
+  background: '#282A36',
+  foreground: '#F8F8F2',
+  cyan: '#8BE9FD',
+  green: '#50FA7B',
+  orange: '#FFB86C',
+  pink: '#FF79C6',
+  purple: '#BD93F9',
+  red: '#FF5555',
+  yellow: '#F1FA8C'
+};
+
+export const draculaChalk = {
+  background: chalk.hex(draculaColors.background),
+  foreground: chalk.hex(draculaColors.foreground),
+  cyan: chalk.hex(draculaColors.cyan),
+  green: chalk.hex(draculaColors.green),
+  orange: chalk.hex(draculaColors.orange),
+  pink: chalk.hex(draculaColors.pink),
+  purple: chalk.hex(draculaColors.purple),
+  red: chalk.hex(draculaColors.red),
+  yellow: chalk.hex(draculaColors.yellow),
+
+  // Special effects
+  glow: (text: string) => chalk.bold.hex(draculaColors.purple)(text),
+  pulse: (text: string) => chalk.bold.hex(draculaColors.pink)(text),
+  error: (text: string) => chalk.bold.hex(draculaColors.red)(text),
+  success: (text: string) => chalk.bold.hex(draculaColors.green)(text),
+  warning: (text: string) => chalk.bold.hex(draculaColors.orange)(text),
+  info: (text: string) => chalk.bold.hex(draculaColors.cyan)(text),
+
+  // Grid elements
+  border: chalk.hex('#44475A'),
+  accent: chalk.hex(draculaColors.pink),
+  highlight: chalk.bold.hex(draculaColors.yellow)
+};
+
+export const draculaGradients = {
+  primary: gradient([draculaColors.purple, draculaColors.pink]),
+  secondary: gradient([draculaColors.pink, draculaColors.cyan]),
+  tertiary: gradient([draculaColors.cyan, draculaColors.green])
+};
+
+export const hiveColors = {
+  gold: '#FFD700',
+  amber: '#FFBF00',
+  honey: '#EB9605',
+  brown: '#8B4513',
+  darkBrown: '#3E1C00',
+  cream: '#FFF8DC',
+  red: '#E3342F',
+  white: '#FFFFFF',
+  orange: '#F6993F'
+};
+
+export const hiveChalk = {
+  gold: chalk.hex(hiveColors.gold),
+  amber: chalk.hex(hiveColors.amber),
+  honey: chalk.hex(hiveColors.honey),
+  brown: chalk.hex(hiveColors.brown),
+  darkBrown: chalk.hex(hiveColors.darkBrown),
+  cream: chalk.hex(hiveColors.cream),
+  red: chalk.hex(hiveColors.red),
+  white: chalk.hex(hiveColors.white),
+  orange: chalk.hex(hiveColors.orange),
+
+  // Special effects
+  glow: (text: string) => chalk.bold.hex(hiveColors.gold)(text),
+  pulse: (text: string) => chalk.bold.hex(hiveColors.amber)(text),
+  error: (text: string) => chalk.bold.hex(hiveColors.red)(text),
+  success: (text: string) => chalk.bold.hex(hiveColors.gold)(text),
+  warning: (text: string) => chalk.bold.hex(hiveColors.orange)(text),
+  info: (text: string) => chalk.bold.hex(hiveColors.honey)(text),
+
+  // Grid elements
+  border: chalk.hex(hiveColors.brown),
+  accent: chalk.hex(hiveColors.amber),
+  highlight: chalk.bold.hex(hiveColors.cream)
+};
+
+export const hiveGradients = {
+  primary: gradient([hiveColors.gold, hiveColors.amber]),
+  secondary: gradient([hiveColors.amber, hiveColors.honey, hiveColors.brown]),
+  tertiary: gradient([hiveColors.gold, hiveColors.cream])
+};
+
 export const neonChalk = {
   cyan: chalk.hex(neonColors.cyan),
   magenta: chalk.hex(neonColors.magenta),
@@ -266,6 +352,118 @@ export function createMatrixBox(content: string, title?: string): string {
   return box;
 }
 
+export async function createDraculaBanner(text: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    figlet.text(text, {
+      font: 'ANSI Shadow',
+      horizontalLayout: 'fitted',
+      verticalLayout: 'fitted'
+    }, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (data) {
+        resolve(draculaGradients.primary(data));
+      } else {
+        reject(new Error('Failed to generate banner'));
+      }
+    });
+  });
+}
+
+export function createDraculaBox(content: string, title?: string): string {
+  const lines = content.split('\n');
+  const maxLength = Math.max(...lines.map(line => line.length));
+  const width = Math.max(maxLength + 4, title ? title.length + 4 : 0);
+
+  let box = '';
+
+  if (title) {
+    const titlePadding = Math.floor((width - title.length - 2) / 2);
+    const leftPadding = '─'.repeat(titlePadding);
+    const rightPadding = '─'.repeat(width - title.length - 2 - titlePadding);
+    box += draculaChalk.border(`┌${leftPadding}`) + draculaChalk.accent(` ${title} `) + draculaChalk.border(`${rightPadding}┐\n`);
+  } else {
+    box += draculaChalk.border('┌' + '─'.repeat(width - 2) + '┐\n');
+  }
+
+  lines.forEach(line => {
+    const padding = ' '.repeat(width - line.length - 4);
+    box += draculaChalk.border('│ ') + line + padding + draculaChalk.border(' │\n');
+  });
+
+  box += draculaChalk.border('└' + '─'.repeat(width - 2) + '┘');
+
+  return box;
+}
+
+export function draculaSpinner(text: string) {
+  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  let i = 0;
+
+  return setInterval(() => {
+    process.stdout.write(`\r${draculaChalk.purple(frames[i % frames.length])} ${draculaChalk.glow(text)}`);
+    i++;
+  }, 80);
+}
+
+export async function createHiveBanner(text: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    figlet.text(text, {
+      font: 'ANSI Shadow',
+      horizontalLayout: 'fitted',
+      verticalLayout: 'fitted'
+    }, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      if (data) {
+        resolve(hiveGradients.primary(data));
+      } else {
+        reject(new Error('Failed to generate banner'));
+      }
+    });
+  });
+}
+
+export function createHiveBox(content: string, title?: string): string {
+  const lines = content.split('\n');
+  const maxLength = Math.max(...lines.map(line => line.length));
+  const width = Math.max(maxLength + 4, title ? title.length + 4 : 0);
+
+  let box = '';
+
+  if (title) {
+    const titlePadding = Math.floor((width - title.length - 2) / 2);
+    const leftPadding = '─'.repeat(titlePadding);
+    const rightPadding = '─'.repeat(width - title.length - 2 - titlePadding);
+    box += hiveChalk.border(`┌${leftPadding}`) + hiveChalk.accent(` ${title} `) + hiveChalk.border(`${rightPadding}┐\n`);
+  } else {
+    box += hiveChalk.border('┌' + '─'.repeat(width - 2) + '┐\n');
+  }
+
+  lines.forEach(line => {
+    const padding = ' '.repeat(width - line.length - 4);
+    box += hiveChalk.border('│ ') + line + padding + hiveChalk.border(' │\n');
+  });
+
+  box += hiveChalk.border('└' + '─'.repeat(width - 2) + '┘');
+
+  return box;
+}
+
+export function hiveSpinner(text: string) {
+  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  let i = 0;
+
+  return setInterval(() => {
+    process.stdout.write(`\r${hiveChalk.gold(frames[i % frames.length])} ${hiveChalk.glow(text)}`);
+    i++;
+  }, 80);
+}
+
 export class MatrixRain {
   private columns: Array<{
     x: number;
@@ -407,38 +605,31 @@ export async function playMatrixRain(duration = 3000, width?: number, height?: n
   await rain.start(duration);
 }
 
-// Subtle Matrix-themed command output enhancement
+// Subtle Matrix-themed command output enhancement.
+// Uses the module-level currentTheme variable (sync) rather than the async
+// getCurrentThemeName(), so this can be called without await.
 export function addMatrixFlair(text: string): string {
-  const currentThemeName = getCurrentThemeName();
-  
-  // Only add flair for Matrix theme, and do it synchronously to avoid delays
-  if (typeof currentThemeName === 'object' && currentThemeName instanceof Promise) {
-    // If it's a promise, just return the text as-is to avoid async complications
-    return text;
-  }
-  
-  if (currentThemeName === 'matrix') {
-    // Add subtle Matrix characters as a prefix/suffix without blocking
+  if (currentTheme === 'matrix') {
     const matrixChars = ['ア', 'カ', 'サ', 'タ', 'ナ', 'ハ', '0', '1'];
     const randomChar = matrixChars[Math.floor(Math.random() * matrixChars.length)];
     const matrixTheme = themes.matrix;
-    
-    // Add a subtle Matrix character prefix in dark green occasionally  
+
+    // Add a subtle Matrix character prefix in dark green occasionally
     if (Math.random() < 0.1) { // 10% chance
       return matrixTheme.chalk.info(randomChar) + ' ' + text;
     }
   }
-  
+
   return text;
 }
 
-export type ThemeType = 'cyberpunk' | 'matrix';
+export type ThemeType = 'cyberpunk' | 'matrix' | 'dracula' | 'hive';
 
 export interface Theme {
   name: string;
-  colors: typeof neonColors | typeof matrixColors;
-  chalk: typeof neonChalk | typeof matrixChalk;
-  gradients: typeof neonGradients | typeof matrixGradients;
+  colors: typeof neonColors | typeof matrixColors | typeof draculaColors | typeof hiveColors;
+  chalk: typeof neonChalk | typeof matrixChalk | typeof draculaChalk | typeof hiveChalk;
+  gradients: typeof neonGradients | typeof matrixGradients | typeof draculaGradients | typeof hiveGradients;
   createBanner: (text: string) => Promise<string>;
   createBox: (content: string, title?: string) => string;
   spinner: (text: string) => NodeJS.Timeout;
@@ -462,10 +653,28 @@ export const themes: Record<ThemeType, Theme> = {
     createBanner: createMatrixBanner,
     createBox: createMatrixBox,
     spinner: matrixSpinner
+  },
+  dracula: {
+    name: 'Dracula',
+    colors: draculaColors,
+    chalk: draculaChalk,
+    gradients: draculaGradients,
+    createBanner: createDraculaBanner,
+    createBox: createDraculaBox,
+    spinner: draculaSpinner
+  },
+  hive: {
+    name: 'Hive',
+    colors: hiveColors,
+    chalk: hiveChalk,
+    gradients: hiveGradients,
+    createBanner: createHiveBanner,
+    createBox: createHiveBox,
+    spinner: hiveSpinner
   }
 };
 
-let currentTheme: ThemeType = 'cyberpunk';
+let currentTheme: ThemeType = 'hive';
 
 const CONFIG_DIR = path.join(os.homedir(), '.beeline');
 const THEME_CONFIG_FILE = path.join(CONFIG_DIR, 'theme.json');
