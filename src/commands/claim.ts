@@ -1,6 +1,6 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner } from '../utils/neon.js';
-import { KeyManager } from '../utils/crypto.js';
+import { neonChalk, createNeonBox, neonSymbols, neonSpinner, stopSpinner, cleanAccountName, generateMockTxId } from '../utils/neon.js';
+import { KeyManager, promptForPin } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 import inquirer from 'inquirer';
 
@@ -54,17 +54,13 @@ export default class Claim extends Command {
 
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Claim);
-    
+
     const keyManager = new KeyManager();
     await keyManager.initialize();
-    
-    let account = args.account || flags.from;
-    
+
     // Clean @ prefix if provided
-    if (account?.startsWith('@')) {
-      account = account.substring(1);
-    }
-    
+    let account = cleanAccountName(args.account) || cleanAccountName(flags.from);
+
     // Use default account if no account specified
     if (!account) {
       account = keyManager.getDefaultAccount();
@@ -84,9 +80,8 @@ export default class Claim extends Command {
       const hiveClient = new HiveClient(keyManager, flags.node);
       const accountData = await hiveClient.getAccount(account);
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+      stopSpinner(spinner);
+
       if (!accountData) {
         console.log(neonChalk.error(`${neonSymbols.cross} Account @${account} not found`));
         return;
@@ -171,23 +166,14 @@ export default class Claim extends Command {
       // Get PIN for key decryption (rewards require posting key)
       const keys = await keyManager.listKeys(account);
       const postingKey = keys.find(k => k.role === 'posting');
-      
+
       if (!postingKey) {
         console.log(neonChalk.error(`${neonSymbols.cross} Posting key not found for account @${account}`));
         console.log(neonChalk.info('Import posting key with: ') + neonChalk.highlight(`beeline keys import ${account} posting`));
         return;
       }
-      
-      let pin: string | undefined;
-      if (postingKey.encrypted) {
-        const pinPrompt = await inquirer.prompt([{
-          type: 'password',
-          name: 'pin',
-          message: neonChalk.cyan('Enter PIN to unlock posting key:'),
-          validate: (input: string) => input.length > 0 || 'PIN required'
-        }]);
-        pin = pinPrompt.pin;
-      }
+
+      const pin = await promptForPin('posting', postingKey.encrypted);
       
       const claimSpinner = neonSpinner('Broadcasting reward claim to Hive blockchain');
       
@@ -200,9 +186,8 @@ export default class Claim extends Command {
         pin
       );
       
-      clearInterval(claimSpinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+      stopSpinner(claimSpinner);
+
       console.log(neonChalk.success(`${neonSymbols.check} Rewards claimed successfully!`));
       console.log('');
       
@@ -226,9 +211,8 @@ export default class Claim extends Command {
       if (pin) keyManager.scrubMemory(pin);
       
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+      stopSpinner(spinner);
+
       console.log(neonChalk.error(`${neonSymbols.cross} Reward claiming failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
       console.log(neonChalk.info('Possible causes:'));
@@ -243,10 +227,10 @@ export default class Claim extends Command {
   private simulateClaim(account: string, rewardHive: number, rewardHbd: number, rewardVests: number): void {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating reward claim...`));
     console.log('');
-    
+
     // Simulate some processing time
     setTimeout(() => {
-      const mockTxId = '0x' + Math.random().toString(16).substring(2, 18);
+      const mockTxId = generateMockTxId();
       
       console.log(neonChalk.success(`${neonSymbols.check} Reward claim simulation complete!`));
       console.log('');

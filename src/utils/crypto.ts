@@ -4,6 +4,8 @@ import * as keytar from 'keytar';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
+import inquirer from 'inquirer';
+import { neonChalk } from './neon.js';
 
 export interface WalletKey {
   account: string;
@@ -293,4 +295,26 @@ export class KeyManager {
       }
     }
   }
+}
+
+/**
+ * Prompts user for PIN to decrypt an encrypted key
+ * Returns undefined if key is not encrypted
+ */
+export async function promptForPin(
+  keyRole: string,
+  isEncrypted: boolean
+): Promise<string | undefined> {
+  if (!isEncrypted) {
+    return undefined;
+  }
+
+  const pinPrompt = await inquirer.prompt([{
+    type: 'password',
+    name: 'pin',
+    message: neonChalk.cyan(`Enter PIN to unlock ${keyRole} key:`),
+    validate: (input: string) => input.length > 0 || 'PIN required'
+  }]);
+
+  return pinPrompt.pin;
 }

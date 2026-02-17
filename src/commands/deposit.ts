@@ -1,6 +1,6 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner } from '../utils/neon.js';
-import { KeyManager } from '../utils/crypto.js';
+import { neonChalk, createNeonBox, neonSymbols, neonSpinner, stopSpinner, cleanAccountName, validateAmount, generateMockTxId } from '../utils/neon.js';
+import { KeyManager, promptForPin } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 import inquirer from 'inquirer';
 
@@ -56,21 +56,14 @@ export default class Deposit extends Command {
 
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Deposit);
-    
+
     const keyManager = new KeyManager();
     await keyManager.initialize();
-    
-    let fromAccount = flags.from;
-    let toAccount = args.to;
-    
+
     // Clean @ prefix if provided
-    if (fromAccount?.startsWith('@')) {
-      fromAccount = fromAccount.substring(1);
-    }
-    if (toAccount?.startsWith('@')) {
-      toAccount = toAccount.substring(1);
-    }
-    
+    let fromAccount = cleanAccountName(flags.from);
+    let toAccount = cleanAccountName(args.to);
+
     // Use default account if no from account specified
     if (!fromAccount) {
       fromAccount = keyManager.getDefaultAccount();
@@ -80,18 +73,19 @@ export default class Deposit extends Command {
         return;
       }
     }
-    
+
     // If no to account specified, deposit to self
     if (!toAccount) {
       toAccount = fromAccount;
     }
-    
+
     // Validate amount format
-    const amount = parseFloat(args.amount);
-    if (isNaN(amount) || amount <= 0) {
-      console.log(neonChalk.error(`${neonSymbols.cross} Invalid amount: ${args.amount}`));
+    const amountResult = validateAmount(args.amount);
+    if (!amountResult.valid) {
+      console.log(neonChalk.error(`${neonSymbols.cross} Invalid amount: ${(amountResult as { valid: false; error: string }).error}`));
       return;
     }
+    const amount = amountResult.value;
     
     const currency = args.currency as 'HIVE' | 'HBD';
     const memo = args.memo || '';
@@ -145,23 +139,14 @@ export default class Deposit extends Command {
     // Get PIN for key decryption
     const keys = await keyManager.listKeys(fromAccount);
     const activeKey = keys.find(k => k.role === 'active');
-    
+
     if (!activeKey) {
       console.log(neonChalk.error(`${neonSymbols.cross} Active key not found for account @${fromAccount}`));
       console.log(neonChalk.info('Import active key with: ') + neonChalk.highlight(`beeline keys import ${fromAccount} active`));
       return;
     }
-    
-    let pin: string | undefined;
-    if (activeKey.encrypted) {
-      const pinPrompt = await inquirer.prompt([{
-        type: 'password',
-        name: 'pin',
-        message: neonChalk.cyan('Enter PIN to unlock active key:'),
-        validate: (input: string) => input.length > 0 || 'PIN required'
-      }]);
-      pin = pinPrompt.pin;
-    }
+
+    const pin = await promptForPin('active', activeKey.encrypted);
     
     const spinner = neonSpinner('Broadcasting to Hive blockchain');
     
@@ -178,9 +163,8 @@ export default class Deposit extends Command {
         pin
       );
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+      stopSpinner(spinner);
+
       console.log(neonChalk.success(`${neonSymbols.check} Savings deposit successful!`));
       console.log('');
       
@@ -204,9 +188,8 @@ export default class Deposit extends Command {
       if (pin) keyManager.scrubMemory(pin);
       
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+      stopSpinner(spinner);
+
       console.log(neonChalk.error(`${neonSymbols.cross} Savings deposit failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
       console.log(neonChalk.info('Possible causes:'));
@@ -223,10 +206,10 @@ export default class Deposit extends Command {
   private simulateDeposit(from: string, to: string, amount: number, currency: 'HIVE' | 'HBD', memo: string): void {
     console.log(neonChalk.glow(`${neonSymbols.diamond} Simulating savings deposit...`));
     console.log('');
-    
+
     // Simulate some processing time
     setTimeout(() => {
-      const mockTxId = '0x' + Math.random().toString(16).substring(2, 18);
+      const mockTxId = generateMockTxId();
       
       console.log(neonChalk.success(`${neonSymbols.check} Savings deposit simulation complete!`));
       console.log('');

@@ -512,3 +512,75 @@ export async function getCurrentThemeName(): Promise<ThemeType> {
 export function listThemes(): ThemeType[] {
   return Object.keys(themes) as ThemeType[];
 }
+
+// ============================================================================
+// Common Utility Functions
+// ============================================================================
+
+/**
+ * Stops a spinner and clears the line
+ * Used across all commands that show spinners during async operations
+ */
+export function stopSpinner(spinner: NodeJS.Timeout): void {
+  clearInterval(spinner);
+  process.stdout.write('\r' + ' '.repeat(80) + '\r');
+}
+
+/**
+ * Cleans account name by removing @ prefix if present
+ * Handles undefined/null values safely
+ */
+export function cleanAccountName(account: string | undefined | null): string | undefined {
+  if (!account) return undefined;
+  return account.startsWith('@') ? account.substring(1) : account;
+}
+
+/**
+ * Validates and parses an amount string
+ * Returns parsed value or error message
+ */
+export function validateAmount(amountStr: string): { valid: true; value: number } | { valid: false; error: string } {
+  const amount = parseFloat(amountStr);
+  if (isNaN(amount)) {
+    return { valid: false, error: 'Invalid number format' };
+  }
+  if (amount <= 0) {
+    return { valid: false, error: 'Amount must be greater than 0' };
+  }
+  if (!isFinite(amount)) {
+    return { valid: false, error: 'Amount must be a finite number' };
+  }
+  return { valid: true, value: amount };
+}
+
+/**
+ * Returns the appropriate color function for a key role
+ * Consistent role coloring across all commands
+ */
+export function getRoleColor(role: string): (text: string) => string {
+  switch (role) {
+    case 'owner': return neonChalk.warning;
+    case 'active': return neonChalk.electric;
+    case 'posting': return neonChalk.orange;
+    case 'memo': return neonChalk.pink;
+    default: return neonChalk.white;
+  }
+}
+
+/**
+ * Formats a balance number with commas and fixed decimal places
+ */
+export function formatBalance(amount: string | number, decimals: number = 3): string {
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return num.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  });
+}
+
+/**
+ * Generates a mock transaction ID for simulation mode
+ */
+export function generateMockTxId(): string {
+  return '0x' + Math.random().toString(16).substring(2, 18);
+}

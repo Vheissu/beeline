@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { neonChalk, createNeonBox, neonSymbols, neonSpinner } from '../utils/neon.js';
+import { neonChalk, createNeonBox, neonSymbols, neonSpinner, stopSpinner, getRoleColor } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import inquirer from 'inquirer';
 
@@ -52,8 +52,7 @@ export default class Keys extends Command {
     
     const spinner = neonSpinner('Initializing quantum encryption protocols');
     await keyManager.initialize();
-    clearInterval(spinner);
-    process.stdout.write('\r' + ' '.repeat(80) + '\r');
+    stopSpinner(spinner);
     
     console.log(neonChalk.success(`${neonSymbols.check} Key vault online`));
     console.log('');
@@ -108,7 +107,7 @@ export default class Keys extends Command {
         const isLast = i === keys.length - 1;
         const connector = isLast ? '└─' : '├─';
         const lockIcon = key.encrypted ? neonSymbols.diamond : neonSymbols.circle;
-        const roleColor = this.getRoleColor(key.role);
+        const roleColor = getRoleColor(key.role);
         keyDisplay += `${neonChalk.darkCyan(connector)} ${neonChalk.cyan(lockIcon)} ${roleColor(key.role.padEnd(8))} ${neonSymbols.arrow} ${neonChalk.white(key.publicKey.substring(0, 20))}...\n`;
       }
       keyDisplay += '\n';
@@ -176,35 +175,33 @@ export default class Keys extends Command {
       pin = pinPrompt.pin;
     }
 
+    const importSpinner = neonSpinner(`Importing ${role} key for ${account}`);
+
     try {
-      const importSpinner = neonSpinner(`Importing ${role} key for ${account}`);
-      
       await keyManager.importPrivateKey(account!, role!, keyPrompt.privateKey, pin);
-      
-      clearInterval(importSpinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+
+      stopSpinner(importSpinner);
+
       console.log(neonChalk.success(`${neonSymbols.check} Key imported successfully`));
-      
+
       const statusMessage = [
         `${neonChalk.glow('Key secured in vault')}`,
         ``,
         `Account: ${neonChalk.highlight(account)}`,
-        `Role: ${this.getRoleColor(role!)(role!)}`,
+        `Role: ${getRoleColor(role!)(role!)}`,
         `Encryption: ${usePin ? neonChalk.success('PIN protected') : neonChalk.warning('OS keychain only')}`,
         ``,
         `${neonChalk.info('Your key is now ready for blockchain operations')}`
       ].join('\n');
-      
+
       console.log(createNeonBox(statusMessage, `${neonSymbols.star} IMPORT COMPLETE ${neonSymbols.star}`));
-      
+
       // Memory scrubbing
       keyManager.scrubMemory(keyPrompt.privateKey);
       if (pin) keyManager.scrubMemory(pin);
-      
+
     } catch (error) {
-      clearInterval(neonSpinner(''));
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(importSpinner);
       console.log(neonChalk.error(`${neonSymbols.cross} Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
     }
   }
@@ -267,13 +264,4 @@ export default class Keys extends Command {
     }
   }
 
-  private getRoleColor(role: string) {
-    switch (role) {
-      case 'owner': return neonChalk.warning;
-      case 'active': return neonChalk.electric;
-      case 'posting': return neonChalk.orange;
-      case 'memo': return neonChalk.pink;
-      default: return neonChalk.white;
-    }
-  }
 }

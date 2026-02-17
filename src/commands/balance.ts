@@ -1,5 +1,5 @@
 import { Command, Flags, Args } from '@oclif/core';
-import { getTheme, neonSymbols, playMatrixRain, getCurrentThemeName } from '../utils/neon.js';
+import { getTheme, neonSymbols, stopSpinner, cleanAccountName, formatBalance } from '../utils/neon.js';
 import { KeyManager } from '../utils/crypto.js';
 import { HiveClient } from '../utils/hive.js';
 
@@ -39,18 +39,14 @@ export default class Balance extends Command {
 
   public async run(): Promise<void> {
     const { args, flags } = await this.parse(Balance);
-    
+
     const theme = await getTheme();
     const keyManager = new KeyManager();
     await keyManager.initialize();
-    
-    let account = args.account;
-    
+
     // Clean @ prefix if provided
-    if (account?.startsWith('@')) {
-      account = account.substring(1);
-    }
-    
+    let account = cleanAccountName(args.account);
+
     // Use default account if no account specified
     if (!account) {
       account = keyManager.getDefaultAccount();
@@ -77,10 +73,9 @@ export default class Balance extends Command {
       const accountData = await hiveClient.getAccount(account);
       const nodeInfo = await hiveClient.getNodeInfo();
       
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
+      stopSpinner(spinner);
       console.log('');
-      
+
       // Check powerdown status
       const withdrawRate = parseFloat(accountData?.vesting_withdraw_rate?.split(' ')[0] || '0');
       const isPoweringDown = withdrawRate > 0;
@@ -101,12 +96,6 @@ export default class Balance extends Command {
         }, null, 2));
         return;
       }
-      
-      // Format numbers with commas
-      const formatBalance = (amount: string) => {
-        const num = parseFloat(amount);
-        return num.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-      };
       
       // Build balance display with optional powerdown info
       let balanceDisplay = [
@@ -144,9 +133,8 @@ export default class Balance extends Command {
       console.log(theme.chalk.info(`${neonSymbols.bullet} Last updated: ${new Date().toLocaleTimeString()}`));
       
     } catch (error) {
-      clearInterval(spinner);
-      process.stdout.write('\r' + ' '.repeat(80) + '\r');
-      
+      stopSpinner(spinner);
+
       console.log(theme.chalk.error(`${neonSymbols.cross} Failed to fetch balance: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');
       console.log(theme.chalk.info('Try using mock data: ') + theme.chalk.highlight(`beeline balance ${account} --mock`));

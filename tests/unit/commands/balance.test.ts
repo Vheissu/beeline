@@ -6,8 +6,8 @@ import { HiveClient } from '@/utils/hive';
 // Mock dependencies
 jest.mock('@/utils/crypto');
 jest.mock('@/utils/hive');
-jest.mock('@/utils/neon', () => ({
-  neonChalk: {
+jest.mock('@/utils/neon', () => {
+  const mockChalk = {
     glow: jest.fn().mockImplementation((text: string) => text),
     highlight: jest.fn().mockImplementation((text: string) => text),
     warning: jest.fn().mockImplementation((text: string) => text),
@@ -18,22 +18,42 @@ jest.mock('@/utils/neon', () => ({
     magenta: jest.fn().mockImplementation((text: string) => text),
     electric: jest.fn().mockImplementation((text: string) => text),
     white: jest.fn().mockImplementation((text: string) => text),
-    darkCyan: jest.fn().mockImplementation((text: string) => text)
-  },
-  createNeonBox: jest.fn().mockImplementation((content: string, title?: string) => 
-    `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
-  ),
-  neonSymbols: {
-    diamond: '◆',
-    cross: '✖',
-    check: '✔',
-    warning: '⚠',
-    star: '★',
-    arrow: '→',
-    bullet: '▶'
-  },
-  neonSpinner: jest.fn().mockReturnValue(456)
-}));
+    darkCyan: jest.fn().mockImplementation((text: string) => text),
+    accent: jest.fn().mockImplementation((text: string) => text),
+    green: jest.fn().mockImplementation((text: string) => text)
+  };
+  return {
+    neonChalk: mockChalk,
+    createNeonBox: jest.fn().mockImplementation((content: string, title?: string) =>
+      `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
+    ),
+    neonSymbols: {
+      diamond: '◆',
+      cross: '✖',
+      check: '✔',
+      warning: '⚠',
+      star: '★',
+      arrow: '→',
+      bullet: '▶'
+    },
+    neonSpinner: jest.fn().mockReturnValue(456),
+    getTheme: jest.fn(() => Promise.resolve({
+      chalk: mockChalk,
+      createBox: jest.fn().mockImplementation((content: string, title?: string) =>
+        `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
+      ),
+      spinner: jest.fn().mockReturnValue(456)
+    })),
+    stopSpinner: jest.fn(),
+    cleanAccountName: jest.fn().mockImplementation((name?: string) =>
+      name?.startsWith('@') ? name.substring(1) : name
+    ),
+    formatBalance: jest.fn().mockImplementation((amount: string | number) => {
+      const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+      return num.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    })
+  };
+});
 
 describe('Balance Command', () => {
   let balanceCommand: Balance;
@@ -71,7 +91,12 @@ describe('Balance Command', () => {
       // @ts-ignore
       getBalance: jest.fn().mockResolvedValue(mockBalances),
       // @ts-ignore
-      getNodeInfo: jest.fn().mockResolvedValue(mockNodeInfo)
+      getNodeInfo: jest.fn().mockResolvedValue(mockNodeInfo),
+      // @ts-ignore
+      getAccount: jest.fn().mockResolvedValue({
+        vesting_withdraw_rate: '0.000000 VESTS',
+        next_vesting_withdrawal: '1969-12-31T23:59:59'
+      })
     };
 
     jest.mocked(HiveClient).mockImplementation(() => mockHiveClient);
