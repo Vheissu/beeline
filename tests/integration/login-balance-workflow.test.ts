@@ -9,8 +9,8 @@ import inquirer from 'inquirer';
 jest.mock('@/utils/crypto');
 jest.mock('@/utils/hive');
 jest.mock('inquirer');
-jest.mock('@/utils/neon', () => ({
-  neonChalk: {
+jest.mock('@/utils/neon', () => {
+  const neonChalk = {
     glow: jest.fn().mockImplementation((text: string) => text),
     highlight: jest.fn().mockImplementation((text: string) => text),
     warning: jest.fn().mockImplementation((text: string) => text),
@@ -23,26 +23,45 @@ jest.mock('@/utils/neon', () => ({
     white: jest.fn().mockImplementation((text: string) => text),
     darkCyan: jest.fn().mockImplementation((text: string) => text),
     pulse: jest.fn().mockImplementation((text: string) => text),
-    accent: jest.fn().mockImplementation((text: string) => text)
-  },
-  createNeonBox: jest.fn().mockImplementation((content: string, title?: string) => 
+    accent: jest.fn().mockImplementation((text: string) => text),
+    green: jest.fn().mockImplementation((text: string) => text)
+  };
+  const createNeonBox = jest.fn().mockImplementation((content: string, title?: string) =>
     `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
-  ),
-  neonSymbols: {
-    diamond: '◆',
-    cross: '✖',
-    check: '✔',
-    warning: '⚠',
-    star: '★',
-    arrow: '→',
-    bullet: '▶'
-  },
-  neonSpinner: jest.fn().mockReturnValue(123),
-  stopSpinner: jest.fn(),
-  // @ts-ignore
-  createNeonBanner: jest.fn().mockResolvedValue('ASCII BANNER'),
-  createNeonGrid: jest.fn().mockReturnValue('GRID PATTERN')
-}));
+  );
+  const neonSpinner = jest.fn().mockReturnValue(123);
+  return {
+    neonChalk,
+    createNeonBox,
+    neonSymbols: {
+      diamond: '◆',
+      cross: '✖',
+      check: '✔',
+      warning: '⚠',
+      star: '★',
+      arrow: '→',
+      bullet: '▶'
+    },
+    neonSpinner,
+    stopSpinner: jest.fn(),
+    // balance.ts (and other commands) render through getTheme().
+    getTheme: jest.fn(() => Promise.resolve({
+      chalk: neonChalk,
+      createBox: createNeonBox,
+      spinner: neonSpinner
+    })),
+    cleanAccountName: jest.fn().mockImplementation((name?: string) =>
+      name?.startsWith('@') ? name.substring(1) : name
+    ),
+    formatBalance: jest.fn().mockImplementation((amount: string | number) => {
+      const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+      return num.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }),
+    // @ts-ignore
+    createNeonBanner: jest.fn().mockResolvedValue('ASCII BANNER'),
+    createNeonGrid: jest.fn().mockReturnValue('GRID PATTERN')
+  };
+});
 
 describe('Login -> Balance Workflow Integration', () => {
   let mockKeyManager: any;

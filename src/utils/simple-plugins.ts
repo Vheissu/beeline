@@ -112,10 +112,23 @@ export class SimplePluginManager {
       if (!pluginName) {
         throw new Error('Plugin package.json must have a name field');
       }
-      
+
+      // The plugin name comes from an untrusted package.json and is used to
+      // build a filesystem path. Reject anything that could escape the plugin
+      // directory (path traversal) before it reaches fs.remove/fs.copy.
+      if (typeof pluginName !== 'string' || !/^[a-z0-9][a-z0-9._-]*$/i.test(pluginName)) {
+        throw new Error(`Unsafe plugin name "${pluginName}". Plugin names may only contain letters, numbers, dot, dash and underscore (no path separators).`);
+      }
+
       // Copy plugin to plugins directory
       const targetPath = path.join(this.pluginDir, pluginName);
-      
+
+      // Defense in depth: confirm the resolved target is still inside pluginDir.
+      const relativeTarget = path.relative(this.pluginDir, targetPath);
+      if (relativeTarget.startsWith('..') || path.isAbsolute(relativeTarget)) {
+        throw new Error(`Refusing to install plugin outside the plugin directory: ${pluginName}`);
+      }
+
       if (await fs.pathExists(targetPath)) {
         console.log(theme.chalk.warning(`${neonSymbols.warning} Plugin ${pluginName} already exists, updating...`));
         await fs.remove(targetPath);

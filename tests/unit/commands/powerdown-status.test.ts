@@ -53,7 +53,7 @@ describe('PowerDownStatus Command', () => {
     
     // Mock KeyManager
     mockKeyManager = {
-      initialize: jest.fn().mockResolvedValue(undefined),
+      initialize: jest.fn(() => Promise.resolve()),
       getDefaultAccount: jest.fn().mockReturnValue(testAccount)
     };
     (KeyManager as any).mockImplementation(() => mockKeyManager);
@@ -84,6 +84,7 @@ describe('PowerDownStatus Command', () => {
 
       mockHiveClient.getAccount.mockResolvedValue(mockAccountData);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: undefined },
         flags: { format: 'table' }
@@ -109,6 +110,7 @@ describe('PowerDownStatus Command', () => {
 
       mockHiveClient.getAccount.mockResolvedValue(mockAccountData);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: accountWithPrefix },
         flags: { format: 'table' }
@@ -132,6 +134,7 @@ describe('PowerDownStatus Command', () => {
 
       mockHiveClient.getAccount.mockResolvedValue(mockAccountData);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: testAccount },
         flags: { format: 'table' }
@@ -155,6 +158,7 @@ describe('PowerDownStatus Command', () => {
 
       mockHiveClient.getAccount.mockResolvedValue(mockAccountData);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: testAccount },
         flags: { format: 'table' }
@@ -180,6 +184,7 @@ describe('PowerDownStatus Command', () => {
 
       mockHiveClient.getAccount.mockResolvedValue(mockAccountData);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: testAccount },
         flags: { format: 'json' }
@@ -204,6 +209,7 @@ describe('PowerDownStatus Command', () => {
     it('should handle account not found', async () => {
       mockHiveClient.getAccount.mockResolvedValue(null);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: 'nonexistent' },
         flags: { format: 'table' }
@@ -219,6 +225,7 @@ describe('PowerDownStatus Command', () => {
     it('should handle network errors', async () => {
       mockHiveClient.getAccount.mockRejectedValue(new Error('Network error'));
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: testAccount },
         flags: { format: 'table' }
@@ -234,6 +241,7 @@ describe('PowerDownStatus Command', () => {
     it('should handle missing default account', async () => {
       mockKeyManager.getDefaultAccount.mockReturnValue(null);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: undefined },
         flags: { format: 'table' }
@@ -253,12 +261,15 @@ describe('PowerDownStatus Command', () => {
         name: testAccount,
         vesting_withdraw_rate: '1000.000000 VESTS',
         next_vesting_withdrawal: '2025-08-11T12:00:00',
-        withdrawn: 7, // 7 weeks completed
-        to_withdraw: 13000 // 13 weeks total
+        // `withdrawn`/`to_withdraw` are raw VESTS in satoshi units (VESTS * 1e6).
+        // 7000 VESTS withdrawn of 13000 VESTS total at 1000 VESTS/week => 7/13 weeks.
+        withdrawn: 7_000_000_000,
+        to_withdraw: 13_000_000_000
       };
 
       mockHiveClient.getAccount.mockResolvedValue(mockAccountData);
 
+      // @ts-ignore - parse is protected; spying on it is fine in tests
       jest.spyOn(command, 'parse').mockResolvedValue({
         args: { account: testAccount },
         flags: { format: 'table' }

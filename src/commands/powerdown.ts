@@ -94,7 +94,7 @@ export default class PowerDown extends Command {
     const powerDownDetails = [
       `${neonChalk.cyan('ACCOUNT')}   ${neonSymbols.arrow} ${neonChalk.highlight('@' + fromAccount)}`,
       `${neonChalk.magenta('AMOUNT')}    ${neonSymbols.arrow} ${neonChalk.white(amount.toFixed(3))} ${neonChalk.yellow(unit)}`,
-      unit === 'HP' ? `${neonChalk.electric('VESTS')}     ${neonSymbols.arrow} ${neonChalk.white(vestingAmount.toFixed(3))} ${neonChalk.cyan('VESTS')}` : '',
+      unit === 'HP' ? `${neonChalk.electric('VESTS')}     ${neonSymbols.arrow} ${neonChalk.white(vestingAmount.toFixed(6))} ${neonChalk.cyan('VESTS')}` : '',
       `${neonChalk.orange('DURATION')}  ${neonSymbols.arrow} ${neonChalk.white('13 weeks')} ${neonChalk.darkCyan('(weekly payments)')}`,
       ``,
       `${neonChalk.warning('⚠️  Power down takes 13 weeks (can be cancelled with a new 0-amount power down)')}`,
@@ -165,7 +165,7 @@ export default class PowerDown extends Command {
         `${neonChalk.cyan('Transaction ID:')} ${neonChalk.highlight(txId)}`,
         `${neonChalk.magenta('Account:')} @${fromAccount}`,
         `${neonChalk.electric('Amount:')} ${amount.toFixed(3)} ${unit}`,
-        `${neonChalk.orange('Vesting Shares:')} ${vestingAmount.toFixed(3)} VESTS`,
+        `${neonChalk.orange('Vesting Shares:')} ${vestingAmount.toFixed(6)} VESTS`,
         `${neonChalk.pink('Duration:')} 13 weeks (weekly payments)`,
         ``,
         `${neonChalk.info('Power down will begin in ~3 seconds')}`
@@ -209,7 +209,7 @@ export default class PowerDown extends Command {
       `${neonChalk.cyan('Mock Transaction ID:')} ${neonChalk.highlight(mockTxId)}`,
       `${neonChalk.magenta('Account:')} @${from}`,
       `${neonChalk.electric('Amount:')} ${amount.toFixed(3)} ${unit}`,
-      `${neonChalk.orange('Mock Vesting Shares:')} ${vestingAmount.toFixed(3)} VESTS`,
+      `${neonChalk.orange('Mock Vesting Shares:')} ${vestingAmount.toFixed(6)} VESTS`,
       `${neonChalk.pink('Mock Duration:')} 13 weeks (weekly payments)`,
       ``,
       `${neonChalk.info('Remove --mock flag to execute real power down')}`

@@ -365,7 +365,7 @@ export default class Plugin extends Command {
     console.log(`  ${neonSymbols.bullet} GitHub repository discovery`);
     console.log('');
     console.log(theme.chalk.accent('For now, you can install plugins from:'));
-    console.log(`  ${neonSymbols.bullet} Local directories: `) + theme.chalk.highlight('beeline plugin install ./my-plugin');
-    console.log(`  ${neonSymbols.bullet} Git repositories: `) + theme.chalk.highlight('beeline plugin install https://github.com/user/plugin.git');
+    console.log(`  ${neonSymbols.bullet} Local directories: ` + theme.chalk.highlight('beeline plugin install ./my-plugin'));
+    console.log(`  ${neonSymbols.bullet} Git repositories: ` + theme.chalk.highlight('beeline plugin install https://github.com/user/plugin.git'));
   }
 }

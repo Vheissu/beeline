@@ -75,7 +75,8 @@ export default class Claim extends Command {
     console.log('');
     
     const spinner = neonSpinner('Fetching reward balances');
-    
+    let pin: string | undefined;
+
     try {
       const hiveClient = new HiveClient(keyManager, flags.node);
       const accountData = await hiveClient.getAccount(account);
@@ -106,9 +107,9 @@ export default class Claim extends Command {
         const noRewardsMessage = [
           `${neonChalk.darkCyan('Account checked: @' + account)}`,
           ``,
-          `${neonChalk.orange('Author Rewards:')} 0.000 HIVE`,
-          `${neonChalk.cyan('Curation Rewards:')} 0.000 HBD`,
-          `${neonChalk.electric('Vesting Rewards:')} 0.000 VESTS`,
+          `${neonChalk.orange('Reward HIVE:')} 0.000 HIVE`,
+          `${neonChalk.cyan('Reward HBD:')} 0.000 HBD`,
+          `${neonChalk.electric('Reward VESTS:')} 0.000 VESTS`,
           ``,
           `${neonChalk.info('💡 Rewards appear here after posts and votes')}`
         ].join('\n');
@@ -121,9 +122,9 @@ export default class Claim extends Command {
       const rewardDetails = [
         `${neonChalk.darkCyan('Account: @' + account)}`,
         ``,
-        `${neonChalk.orange('Author Rewards:')} ${neonChalk.white(rewardHive.toFixed(3))} ${neonChalk.yellow('HIVE')}`,
-        `${neonChalk.cyan('Curation Rewards:')} ${neonChalk.white(rewardHbd.toFixed(3))} ${neonChalk.yellow('HBD')}`,
-        `${neonChalk.electric('Vesting Rewards:')} ${neonChalk.white(rewardVests.toFixed(6))} ${neonChalk.yellow('VESTS')}`,
+        `${neonChalk.orange('Reward HIVE:')} ${neonChalk.white(rewardHive.toFixed(3))} ${neonChalk.yellow('HIVE')}`,
+        `${neonChalk.cyan('Reward HBD:')} ${neonChalk.white(rewardHbd.toFixed(3))} ${neonChalk.yellow('HBD')}`,
+        `${neonChalk.electric('Reward VESTS:')} ${neonChalk.white(rewardVests.toFixed(6))} ${neonChalk.yellow('VESTS')}`,
         ``,
         `${neonChalk.green('💰 Total value available to claim!')}`
       ].join('\n');
@@ -142,8 +143,10 @@ export default class Claim extends Command {
         console.log('');
       }
       
-      // Confirmation prompt
-      if (!flags.confirm && !flags.all) {
+      // Confirmation prompt. Only an explicit --confirm/-y skips it; --all is a
+      // reward-type selector and must NOT silently bypass confirmation before a
+      // real broadcast.
+      if (!flags.confirm) {
         const confirmPrompt = await inquirer.prompt([{
           type: 'confirm',
           name: 'confirm',
@@ -173,7 +176,7 @@ export default class Claim extends Command {
         return;
       }
 
-      const pin = await promptForPin('posting', postingKey.encrypted);
+      pin = await promptForPin('posting', postingKey.encrypted);
       
       const claimSpinner = neonSpinner('Broadcasting reward claim to Hive blockchain');
       
@@ -212,6 +215,9 @@ export default class Claim extends Command {
       
     } catch (error) {
       stopSpinner(spinner);
+
+      // Scrub the PIN on the error path too, mirroring transfer/powerup/etc.
+      if (pin) keyManager.scrubMemory(pin);
 
       console.log(neonChalk.error(`${neonSymbols.cross} Reward claiming failed: ${error instanceof Error ? error.message : 'Unknown error'}`));
       console.log('');

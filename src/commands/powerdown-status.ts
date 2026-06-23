@@ -72,17 +72,24 @@ export default class PowerDownStatus extends Command {
         return;
       }
       
-      // Parse powerdown data
+      // Parse powerdown data.
+      // `vesting_withdraw_rate` is VESTS withdrawn per week (asset string).
+      // `withdrawn` and `to_withdraw` are raw VESTS in satoshi units (VESTS * 1e6),
+      // NOT week counts. Convert to VESTS before deriving the weekly schedule.
+      const VESTS_PRECISION = 1_000_000;
       const withdrawRate = parseFloat(accountData.vesting_withdraw_rate?.split(' ')[0] || '0');
       const nextWithdrawal = new Date(accountData.next_vesting_withdrawal);
+      const withdrawnVests = (accountData.withdrawn || 0) / VESTS_PRECISION;
+      const toWithdrawVests = (accountData.to_withdraw || 0) / VESTS_PRECISION;
+
+      // Calculate powerdown status. A standard powerdown spans 13 weekly
+      // withdrawals; derive the week counts from the per-week rate.
+      const isPoweringDown = withdrawRate > 0;
+      const totalWeeks = isPoweringDown ? Math.round(toWithdrawVests / withdrawRate) : 0;
+      const weeksPassed = isPoweringDown ? Math.round(withdrawnVests / withdrawRate) : 0;
+      const remainingWithdrawals = Math.max(0, totalWeeks - weeksPassed);
       const withdrawn = accountData.withdrawn;
       const toWithdraw = accountData.to_withdraw;
-      
-      // Calculate powerdown status
-      const isPoweringDown = withdrawRate > 0;
-      const remainingWithdrawals = isPoweringDown ? Math.ceil((toWithdraw - withdrawn) / 13) : 0;
-      const weeksPassed = withdrawn;
-      const totalWeeks = toWithdraw / 13; // Each withdrawal is 1/13th
       
       if (flags.format === 'json') {
         console.log(JSON.stringify({
@@ -92,8 +99,10 @@ export default class PowerDownStatus extends Command {
           next_vesting_withdrawal: accountData.next_vesting_withdrawal,
           withdrawn,
           to_withdraw: toWithdraw,
+          withdrawn_vests: withdrawnVests,
+          to_withdraw_vests: toWithdrawVests,
           weeks_passed: weeksPassed,
-          total_weeks: Math.round(totalWeeks),
+          total_weeks: totalWeeks,
           remaining_withdrawals: remainingWithdrawals,
           timestamp: new Date().toISOString()
         }, null, 2));
@@ -127,7 +136,7 @@ export default class PowerDownStatus extends Command {
         `${neonChalk.orange('Status:')} ${neonChalk.warning('POWERING DOWN')} ${neonSymbols.warning}`,
         `${neonChalk.electric('Withdraw Rate:')} ${neonChalk.white(withdrawRate.toFixed(6))} ${neonChalk.yellow('VESTS/week')}`,
         ``,
-        `${neonChalk.magenta('Progress:')} ${neonChalk.white(weeksPassed)}/${neonChalk.white(Math.round(totalWeeks))} weeks completed`,
+        `${neonChalk.magenta('Progress:')} ${neonChalk.white(weeksPassed)}/${neonChalk.white(totalWeeks)} weeks completed`,
         `${neonChalk.pink('Remaining:')} ${neonChalk.white(remainingWithdrawals)} withdrawals`,
         ``,
         `${neonChalk.cyan('Next Withdrawal:')} ${neonChalk.white(nextWithdrawal.toLocaleString())}`,

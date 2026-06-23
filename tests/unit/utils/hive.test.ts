@@ -132,7 +132,15 @@ describe('HiveClient', () => {
         savings_balance: '50.000 HIVE',
         savings_hbd_balance: '25.000 HBD',
         delegated_vesting_shares: '0.000000 VESTS',
-        received_vesting_shares: '1000000.000000 VESTS'
+        received_vesting_shares: '1000000.000000 VESTS',
+        // Reward + powerdown fields default when absent from the account payload.
+        reward_hive_balance: '0.000 HIVE',
+        reward_hbd_balance: '0.000 HBD',
+        reward_vesting_balance: '0.000 VESTS',
+        vesting_withdraw_rate: '0.000000 VESTS',
+        next_vesting_withdrawal: '1969-12-31T23:59:59',
+        withdrawn: 0,
+        to_withdraw: 0
       });
     });
 

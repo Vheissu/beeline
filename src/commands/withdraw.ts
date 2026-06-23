@@ -90,8 +90,11 @@ export default class Withdraw extends Command {
     const currency = args.currency as 'HIVE' | 'HBD';
     const memo = args.memo || '';
     
-    // Generate unique request ID (timestamp-based)
-    const requestId = Date.now() % 1000000; // Keep it reasonable length
+    // Generate a unique request ID. transfer_from_savings.request_id is a uint32
+    // and must be unique among an account's pending withdrawals; a truncated
+    // timestamp (Date.now() % 1e6) collides for withdrawals issued close together.
+    // A random uint32 makes collisions negligible.
+    const requestId = Math.floor(Math.random() * 0xffffffff);
     
     console.log(neonChalk.glow(`${neonSymbols.diamond} Preparing savings withdrawal...`));
     console.log('');

@@ -22,11 +22,16 @@ jest.mock('@/utils/neon', () => {
     accent: jest.fn().mockImplementation((text: string) => text),
     green: jest.fn().mockImplementation((text: string) => text)
   };
+  // balance.ts renders through getTheme(), so the theme's createBox/spinner must
+  // be the SAME mock instances exported at top level — otherwise assertions on
+  // createNeonBox/neonSpinner never see the command's calls.
+  const createNeonBox = jest.fn().mockImplementation((content: string, title?: string) =>
+    `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
+  );
+  const neonSpinner = jest.fn().mockReturnValue(456);
   return {
     neonChalk: mockChalk,
-    createNeonBox: jest.fn().mockImplementation((content: string, title?: string) =>
-      `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
-    ),
+    createNeonBox,
     neonSymbols: {
       diamond: '◆',
       cross: '✖',
@@ -36,13 +41,11 @@ jest.mock('@/utils/neon', () => {
       arrow: '→',
       bullet: '▶'
     },
-    neonSpinner: jest.fn().mockReturnValue(456),
+    neonSpinner,
     getTheme: jest.fn(() => Promise.resolve({
       chalk: mockChalk,
-      createBox: jest.fn().mockImplementation((content: string, title?: string) =>
-        `[BOX: ${title || 'NO_TITLE'}]\n${content}\n[/BOX]`
-      ),
-      spinner: jest.fn().mockReturnValue(456)
+      createBox: createNeonBox,
+      spinner: neonSpinner
     })),
     stopSpinner: jest.fn(),
     cleanAccountName: jest.fn().mockImplementation((name?: string) =>
@@ -341,10 +344,8 @@ describe('Balance Command', () => {
 
       await balanceCommand.run();
 
-      expect(clearInterval).toHaveBeenCalled();
-      expect(process.stdout.write).toHaveBeenCalledWith(
-        expect.stringContaining('\r')
-      );
+      const { stopSpinner } = await import('@/utils/neon');
+      expect(stopSpinner).toHaveBeenCalled();
     });
 
     it('should display status information', async () => {
@@ -397,10 +398,8 @@ describe('Balance Command', () => {
 
       await balanceCommand.run();
 
-      expect(clearInterval).toHaveBeenCalled();
-      expect(process.stdout.write).toHaveBeenCalledWith(
-        expect.stringContaining('\r')
-      );
+      const { stopSpinner } = await import('@/utils/neon');
+      expect(stopSpinner).toHaveBeenCalled();
     });
 
     it('should handle node info fetch errors', async () => {
