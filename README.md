@@ -21,10 +21,10 @@
 - 🔐 **Secure Key Management** - PIN-encrypted key storage with OS keychain integration
 - 🚀 **Password-Based Login** - Derive all keys from your master Hive password
 - 👥 **Multiple Account Support** - Manage unlimited Hive accounts in one wallet
-- 💰 **Complete Blockchain Operations** - Transfers, power up/down, savings (20% APR), reward claiming, RC monitoring, powerdown status tracking
+- 💰 **Complete Blockchain Operations** - Transfers, power up/down (and cancel), HP delegation, HBD/HIVE conversion, savings (20% APR) with pending-withdrawal management, reward claiming, RC monitoring, powerdown status tracking
 - 📊 **Transaction History** - Comprehensive history with analytics, filtering by type/amount/date
 - 🏛️ **Governance Operations** - Witness voting, proxy management, witness discovery
-- 🔌 **Plugin System** - Extensible architecture for HiveEngine, price tracking, and community plugins
+- 🔌 **Plugin System** - Extensible architecture for HiveEngine, price tracking, and community plugins (install requires explicit trust; every plugin-initiated signature is confirmed by Beeline showing the real operation)
 - 🛡️ **Security First** - Memory scrubbing, encrypted storage, zero-click paranoia
 - 📱 **Terminal Native** - Pure command line interface with neon styling
 - 🎮 **Mock Mode** - Test all operations safely before going live
@@ -263,6 +263,40 @@ beeline powerdown 10 HP --confirm                # Skip confirmation prompt
 beeline powerdown-status                         # Check default account powerdown status
 beeline powerdown-status alice                   # Check specific account powerdown status
 beeline powerdown-status alice --format json     # JSON output format
+
+# Cancel an active power down (broadcasts a 0 VESTS withdraw rate)
+beeline powerdown-cancel                         # Stop the active power down
+beeline powerdown-cancel --from @business        # Cancel for a specific account
+beeline powerdown-cancel --mock                  # Test cancellation safely
+```
+
+#### **Delegation Operations**
+```bash
+# Delegate Hive Power to another account
+beeline delegate @bob 500 HP                     # Delegate 500 HP to @bob
+beeline delegate @bob 1000000 VESTS              # Delegate in raw VESTS
+beeline delegate @bob 500 HP --from @business    # Delegate from a specific account
+
+# Remove a delegation (sets it to 0)
+beeline undelegate @bob                          # Remove the delegation to @bob
+
+# Inspect delegations (read-only)
+beeline delegations                              # Incoming + outgoing for default account
+beeline delegations alice                        # For a specific account
+beeline delegations alice --format json          # JSON output format
+
+# Safe testing for delegation operations
+beeline delegate @bob 500 HP --mock              # Test delegation safely
+beeline undelegate @bob --mock                   # Test removal safely
+```
+
+#### **Convert Operations**
+```bash
+# Convert between HBD and HIVE
+beeline convert 10 HBD                           # HBD -> HIVE (settles after ~3.5 days)
+beeline convert 10 HIVE                          # HIVE -> HBD (collateralized_convert)
+beeline convert 10 HBD --from @business          # Convert from a specific account
+beeline convert 10 HBD --mock                    # Test conversion safely
 ```
 
 #### **Savings Operations (20% APR on HBD)**
@@ -277,9 +311,15 @@ beeline withdraw 100 HBD                         # Withdraw from savings
 beeline withdraw 50 HIVE @alice                  # Withdraw to specific account
 beeline withdraw 200 HBD --from @business        # Withdraw from specific account
 
+# Manage pending savings withdrawals
+beeline savings pending                          # List pending withdrawals for default account
+beeline savings pending alice                    # List for a specific account
+beeline savings cancel 12345                     # Cancel a pending withdrawal by request ID
+
 # Safe testing for savings operations
 beeline deposit 100 HBD --mock                   # Test deposit safely
 beeline withdraw 50 HBD --mock                   # Test withdrawal safely
+beeline savings cancel 12345 --mock              # Test cancellation safely
 ```
 
 #### **Reward Management**
@@ -291,7 +331,7 @@ beeline claim alice --show-only                  # Check specific account
 # Claim all rewards (HIVE, HBD, VESTS)
 beeline claim                                    # Claim all rewards for default account
 beeline claim alice                              # Claim rewards for specific account
-beeline claim alice --all                        # Claim all without confirmation
+beeline claim alice --confirm                    # Claim and skip the confirmation prompt
 
 # Safe testing
 beeline claim --mock                             # Test reward claiming safely

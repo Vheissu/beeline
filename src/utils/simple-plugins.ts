@@ -129,6 +129,29 @@ export class SimplePluginManager {
         throw new Error(`Refusing to install plugin outside the plugin directory: ${pluginName}`);
       }
 
+      // SECURITY: an installed plugin runs as ordinary Node code with full
+      // privileges (filesystem, network, and signing via the wallet context) and
+      // is loaded on every CLI invocation. Require explicit, informed consent
+      // before installing untrusted code. Set BEELINE_ASSUME_YES=1 to bypass in
+      // non-interactive/CI environments.
+      if (!process.env.BEELINE_ASSUME_YES) {
+        console.log(theme.chalk.warning(`${neonSymbols.warning} About to install plugin "${pluginName}"`));
+        console.log(theme.chalk.info(`   Source: ${resolvedSource}`));
+        console.log(theme.chalk.info('   Plugins run with full access to your system and can request'));
+        console.log(theme.chalk.info('   transaction signing. Only install plugins you trust.'));
+        const { default: inquirer } = await import('inquirer');
+        const { trusted } = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'trusted',
+          message: theme.chalk.warning(`Install and load "${pluginName}"?`),
+          default: false
+        }]);
+        if (!trusted) {
+          console.log(theme.chalk.info('Plugin installation cancelled'));
+          return;
+        }
+      }
+
       if (await fs.pathExists(targetPath)) {
         console.log(theme.chalk.warning(`${neonSymbols.warning} Plugin ${pluginName} already exists, updating...`));
         await fs.remove(targetPath);
@@ -392,35 +415,74 @@ export class SimplePluginManager {
 
         broadcastCustomJson: async (account: string, id: string, json: any, requiredAuths: string[] = [], requiredPostingAuths: string[] = []) => {
           const { HiveClient } = await import('./hive.js');
-          const { KeyManager } = await import('./crypto.js'); 
+          const { KeyManager } = await import('./crypto.js');
           const keyManager = new KeyManager();
           await keyManager.initialize();
-          
+
           const hiveClient = new HiveClient(keyManager);
-          
-          // First try without PIN (for unencrypted keys)
+
+          // SECURITY: a plugin is asking us to sign and broadcast a transaction.
+          // Before touching any key, render the REAL operation ourselves (never
+          // text supplied by the plugin) and require explicit user consent. This
+          // prevents a malicious plugin from socially engineering a signature.
+          const authority = requiredAuths.length > 0 ? 'active' : 'posting';
+          const theme = await getTheme();
+          const { default: inquirer } = await import('inquirer');
+
+          let payloadPreview: string;
+          try {
+            payloadPreview = JSON.stringify(json, null, 2);
+          } catch {
+            payloadPreview = String(json);
+          }
+          if (payloadPreview.length > 800) {
+            payloadPreview = payloadPreview.slice(0, 800) + '\n… (truncated)';
+          }
+
+          const consentLines = [
+            `${theme.chalk.warning('A plugin wants to broadcast a signed transaction.')}`,
+            ``,
+            `${theme.chalk.info('Plugin:')}         ${pluginName}`,
+            `${theme.chalk.info('Account:')}        @${account}`,
+            `${theme.chalk.info('Signing key:')}    ${authority}`,
+            `${theme.chalk.info('custom_json id:')} ${id}`,
+            ``,
+            `${theme.chalk.info('Payload:')}`,
+            payloadPreview
+          ].join('\n');
+
+          console.log(theme.createBox(consentLines, `${neonSymbols.warning} PLUGIN SIGNATURE REQUEST ${neonSymbols.warning}`));
+
+          const { approved } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'approved',
+            message: theme.chalk.warning(`Allow "${pluginName}" to sign this with your ${authority} key?`),
+            default: false
+          }]);
+
+          if (!approved) {
+            throw new Error('Plugin broadcast declined by user');
+          }
+
+          // First try without a PIN (unencrypted keys); only prompt if required.
           try {
             return await hiveClient.broadcastCustomJson(account, id, json, requiredAuths, requiredPostingAuths);
           } catch (error) {
-            // If it fails because PIN is required, prompt for PIN using inquirer (same as main commands)
             if (error.message.includes('PIN required')) {
-              const { default: inquirer } = await import('inquirer');
-              
               const pinPrompt = await inquirer.prompt([{
                 type: 'password',
                 name: 'pin',
-                message: `🔐 Enter PIN to decrypt ${requiredAuths.length > 0 ? 'active' : 'posting'} key for @${account}:`,
+                message: theme.chalk.info(`Enter PIN to unlock your ${authority} key for @${account}:`),
                 validate: (input: string) => input.length > 0 || 'PIN required'
               }]);
-              
+
               const pin = pinPrompt.pin;
-              
+
               // Clean up inquirer to prevent hanging
               if (process.stdin && process.stdin.destroy) {
                 process.stdin.pause();
               }
-              
-              // Retry with PIN
+
               try {
                 return await hiveClient.broadcastCustomJson(account, id, json, requiredAuths, requiredPostingAuths, pin);
               } catch (pinError) {

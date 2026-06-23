@@ -122,6 +122,24 @@ export interface GovernanceStatus {
   votingPower: string;
 }
 
+export interface VestingDelegation {
+  id: number;
+  delegator: string;
+  delegatee: string;
+  vesting_shares: string;
+  min_delegation_time: string;
+}
+
+export interface SavingsWithdrawal {
+  id: number;
+  from: string;
+  to: string;
+  memo: string;
+  request_id: number;
+  amount: string;
+  complete: string;
+}
+
 export interface HiveAccount {
   name: string;
   balance: string;
@@ -354,6 +372,136 @@ export class HiveClient {
       return (hp * totalVests) / totalHive;
     } catch (error) {
       throw new Error(`Failed to convert HP to VESTS: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async convertVestsToHP(vests: number): Promise<number> {
+    try {
+      const globalProps = await this.client.database.getDynamicGlobalProperties();
+      const totalVests = parseFloat(globalProps.total_vesting_shares.toString().split(' ')[0]);
+      const totalHive = parseFloat(globalProps.total_vesting_fund_hive.toString().split(' ')[0]);
+
+      return (vests * totalHive) / totalVests;
+    } catch (error) {
+      throw new Error(`Failed to convert VESTS to HP: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async delegateVestingShares(
+    delegator: string,
+    delegatee: string,
+    vests: string,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(delegator, 'active', pin);
+
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${delegator}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+
+      // A vesting_shares of "0.000000 VESTS" removes an existing delegation.
+      const operation: any = [
+        'delegate_vesting_shares',
+        {
+          delegator,
+          delegatee,
+          vesting_shares: `${vests} VESTS`
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+
+      this.keyManager.scrubMemory(privateKeyWif);
+
+      return result.id;
+    } catch (error) {
+      throw new Error(`Delegation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getOutgoingDelegations(account: string, limit: number = 100): Promise<VestingDelegation[]> {
+    try {
+      const delegations = await this.client.database.call('get_vesting_delegations', [account, '', limit]);
+      return Array.isArray(delegations) ? delegations : [];
+    } catch (error) {
+      throw new Error(`Failed to fetch delegations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async convert(
+    owner: string,
+    amount: string,
+    currency: 'HIVE' | 'HBD',
+    requestId: number,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(owner, 'active', pin);
+
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${owner}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+
+      // HBD -> HIVE uses `convert` (settles after ~3.5 days at the median price).
+      // HIVE -> HBD uses `collateralized_convert` (immediate partial payout,
+      // settles the remainder after the conversion window).
+      const operation: any = currency === 'HBD'
+        ? ['convert', { owner, requestid: requestId, amount: `${amount} HBD` }]
+        : ['collateralized_convert', { owner, requestid: requestId, amount: `${amount} HIVE` }];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+
+      this.keyManager.scrubMemory(privateKeyWif);
+
+      return result.id;
+    } catch (error) {
+      throw new Error(`Convert failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getSavingsWithdrawals(account: string): Promise<SavingsWithdrawal[]> {
+    try {
+      const withdrawals = await this.client.database.call('get_savings_withdraw_from', [account]);
+      return Array.isArray(withdrawals) ? withdrawals : [];
+    } catch (error) {
+      throw new Error(`Failed to fetch savings withdrawals: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async cancelSavingsWithdrawal(
+    from: string,
+    requestId: number,
+    pin?: string
+  ): Promise<string> {
+    try {
+      const privateKeyWif = await this.keyManager.getPrivateKey(from, 'active', pin);
+
+      if (!privateKeyWif) {
+        throw new Error(`Active key not found for account ${from}`);
+      }
+
+      const privateKey = PrivateKey.fromString(privateKeyWif);
+
+      const operation: any = [
+        'cancel_transfer_from_savings',
+        {
+          from,
+          request_id: requestId
+        }
+      ];
+
+      const result = await this.client.broadcast.sendOperations([operation], privateKey);
+
+      this.keyManager.scrubMemory(privateKeyWif);
+
+      return result.id;
+    } catch (error) {
+      throw new Error(`Cancel savings withdrawal failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

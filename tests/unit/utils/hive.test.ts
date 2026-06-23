@@ -378,6 +378,105 @@ describe('HiveClient', () => {
     });
   });
 
+  describe('delegateVestingShares', () => {
+    it('should broadcast a delegate_vesting_shares operation', async () => {
+      const result = await hiveClient.delegateVestingShares(
+        testAccount,
+        'bob',
+        '1000000.000000',
+        testPin
+      );
+
+      expect(mockKeyManager.getPrivateKey).toHaveBeenCalledWith(
+        testAccount, 'active', testPin
+      );
+      expect(mockClient.broadcast.sendOperations).toHaveBeenCalledWith(
+        [[
+          'delegate_vesting_shares',
+          {
+            delegator: testAccount,
+            delegatee: 'bob',
+            vesting_shares: '1000000.000000 VESTS'
+          }
+        ]],
+        mockPrivateKeyInstance
+      );
+      expect(result).toBe('mock-transaction-id-12345');
+    });
+
+    it('should broadcast 0 VESTS to remove a delegation', async () => {
+      await hiveClient.delegateVestingShares(testAccount, 'bob', '0.000000', testPin);
+
+      expect(mockClient.broadcast.sendOperations).toHaveBeenCalledWith(
+        [[
+          'delegate_vesting_shares',
+          { delegator: testAccount, delegatee: 'bob', vesting_shares: '0.000000 VESTS' }
+        ]],
+        mockPrivateKeyInstance
+      );
+    });
+
+    it('should require an active key', async () => {
+      jest.mocked(mockKeyManager.getPrivateKey).mockResolvedValue(null);
+
+      await expect(
+        hiveClient.delegateVestingShares(testAccount, 'bob', '1.000000', testPin)
+      ).rejects.toThrow(`Active key not found for account ${testAccount}`);
+    });
+  });
+
+  describe('convert', () => {
+    it('should use `convert` for HBD -> HIVE', async () => {
+      await hiveClient.convert(testAccount, '10.000', 'HBD', 42, testPin);
+
+      expect(mockKeyManager.getPrivateKey).toHaveBeenCalledWith(
+        testAccount, 'active', testPin
+      );
+      expect(mockClient.broadcast.sendOperations).toHaveBeenCalledWith(
+        [[
+          'convert',
+          { owner: testAccount, requestid: 42, amount: '10.000 HBD' }
+        ]],
+        mockPrivateKeyInstance
+      );
+    });
+
+    it('should use `collateralized_convert` for HIVE -> HBD', async () => {
+      await hiveClient.convert(testAccount, '5.000', 'HIVE', 7, testPin);
+
+      expect(mockClient.broadcast.sendOperations).toHaveBeenCalledWith(
+        [[
+          'collateralized_convert',
+          { owner: testAccount, requestid: 7, amount: '5.000 HIVE' }
+        ]],
+        mockPrivateKeyInstance
+      );
+    });
+  });
+
+  describe('cancelSavingsWithdrawal', () => {
+    it('should broadcast a cancel_transfer_from_savings operation', async () => {
+      const result = await hiveClient.cancelSavingsWithdrawal(testAccount, 123, testPin);
+
+      expect(mockClient.broadcast.sendOperations).toHaveBeenCalledWith(
+        [[
+          'cancel_transfer_from_savings',
+          { from: testAccount, request_id: 123 }
+        ]],
+        mockPrivateKeyInstance
+      );
+      expect(result).toBe('mock-transaction-id-12345');
+    });
+
+    it('should require an active key', async () => {
+      jest.mocked(mockKeyManager.getPrivateKey).mockResolvedValue(null);
+
+      await expect(
+        hiveClient.cancelSavingsWithdrawal(testAccount, 123, testPin)
+      ).rejects.toThrow(`Active key not found for account ${testAccount}`);
+    });
+  });
+
   describe('getNodeInfo', () => {
     it('should return node information successfully', async () => {
       const result = await hiveClient.getNodeInfo();

@@ -91,6 +91,9 @@
       },
       "keys": {
         "description": "Key management"
+      },
+      "savings": {
+        "description": "Savings withdrawal management"
       }
     }
   }
