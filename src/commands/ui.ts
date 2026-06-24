@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
 import { KeyManager } from '../utils/crypto.js';
 import { TerminalUI } from '../ui/TerminalUI.js';
-import { getTheme, neonSymbols, getCurrentThemeName, playMatrixRain } from '../utils/neon.js';
+import { getTheme, neonSymbols } from '../utils/neon.js';
 
 export default class UI extends Command {
   static override description = 'Launch the visual terminal interface for Beeline wallet';

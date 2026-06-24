@@ -625,11 +625,29 @@ export class HiveClient {
         throw new Error(`RC data not found for ${username}`);
       }
 
-      const current = parseInt(rc[0].rc_manabar.current_mana);
-      const max = parseInt(rc[0].max_rc);
-      const percentage = (current / max) * 100;
+      // RC values routinely exceed Number.MAX_SAFE_INTEGER, so parse them as
+      // BigInt to avoid silently losing the low-order digits.
+      const maxRc = BigInt(String(rc[0].max_rc));
+      const manabar = rc[0].rc_manabar as { current_mana: string | number; last_update_time: number };
+      let currentMana = BigInt(String(manabar.current_mana));
 
-      return { current, max, percentage };
+      // The node returns the manabar as of `last_update_time`; it regenerates
+      // linearly back to `max_rc` over five days. Reconstruct the live value by
+      // adding the mana accrued since then, capped at the maximum.
+      const RC_REGEN_SECONDS = 60 * 60 * 24 * 5;
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const elapsed = Math.max(0, nowSeconds - Number(manabar.last_update_time || 0));
+      if (maxRc > 0n && elapsed > 0) {
+        currentMana += (maxRc * BigInt(elapsed)) / BigInt(RC_REGEN_SECONDS);
+        if (currentMana > maxRc) currentMana = maxRc;
+      }
+
+      // Compute the percentage in BigInt space (basis points) before narrowing.
+      const percentage = maxRc > 0n
+        ? Number((currentMana * 10000n) / maxRc) / 100
+        : 0;
+
+      return { current: Number(currentMana), max: Number(maxRc), percentage };
     } catch (error) {
       throw new Error(`Failed to get RC data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import { getTheme, neonSymbols } from './neon.js';
 
 // Simple plugin interface
@@ -82,6 +83,8 @@ export class SimplePluginManager {
   private plugins: Map<string, LoadedPlugin> = new Map();
   private pluginDir: string;
   private registeredCommands: Map<string, PluginCommand> = new Map();
+  // Monotonic counter used to bust the ESM module cache on reload (see loadPlugin).
+  private loadCounter = 0;
   
   constructor() {
     this.pluginDir = path.join(process.env.HOME || '', '.beeline', 'plugins');
@@ -156,9 +159,18 @@ export class SimplePluginManager {
         console.log(theme.chalk.warning(`${neonSymbols.warning} Plugin ${pluginName} already exists, updating...`));
         await fs.remove(targetPath);
       }
-      
+
+      // If a previous copy is already loaded in this process (initialize() loads
+      // every installed plugin up front), unload it first. Otherwise loadPlugin
+      // would refuse with "already loaded" and the stale code would linger until
+      // the next invocation — the reason updates previously needed a manual
+      // delete-the-folder-and-rerun dance.
+      if (this.plugins.has(pluginName)) {
+        await this.unloadPlugin(pluginName);
+      }
+
       await fs.copy(resolvedSource, targetPath);
-      
+
       // Load the plugin
       await this.loadPlugin(targetPath);
       
@@ -240,10 +252,14 @@ export class SimplePluginManager {
       throw new Error(`Plugin main file not found: ${mainFile}`);
     }
     
-    // Import the plugin with timeout protection
+    // Import the plugin with timeout protection.
+    // Dynamic import() caches modules by URL for the life of the process, so a
+    // plugin updated in the same session would otherwise keep running its old
+    // code. Append a unique query string to force a fresh module evaluation.
     let pluginModule;
     try {
-      const importPromise = import(mainPath);
+      const moduleUrl = `${pathToFileURL(mainPath).href}?v=${++this.loadCounter}`;
+      const importPromise = import(moduleUrl);
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Plugin import timeout (30s)')), 30000)
       );
@@ -354,15 +370,15 @@ export class SimplePluginManager {
       },
       
       ui: {
-        createForm: async (options: UIFormOptions) => {
+        createForm: async (_options: UIFormOptions) => {
           // TODO: Implement form creation
           throw new Error('Form creation not yet implemented');
         },
-        showDialog: async (options: UIDialogOptions) => {
+        showDialog: async (_options: UIDialogOptions) => {
           // TODO: Implement dialog
           throw new Error('Dialog not yet implemented');
         },
-        showMenu: async (options: UIMenuOptions) => {
+        showMenu: async (_options: UIMenuOptions) => {
           // TODO: Implement menu
           throw new Error('Menu not yet implemented');
         },
@@ -522,36 +538,50 @@ export class SimplePluginManager {
     }
   }
   
+  // Deactivate a loaded plugin and drop it from memory WITHOUT touching its
+  // files on disk. Shared by uninstall (which then deletes the files) and
+  // reinstall/update (which is about to overwrite them).
+  private async unloadPlugin(pluginName: string): Promise<void> {
+    const loaded = this.plugins.get(pluginName);
+    if (!loaded) return;
+
+    if (loaded.plugin.deactivate) {
+      try {
+        await loaded.plugin.deactivate();
+      } catch {
+        // A misbehaving deactivate() must not block unloading.
+      }
+    }
+
+    for (const [cmdName, cmd] of this.registeredCommands.entries()) {
+      if (cmd.pluginName === pluginName) {
+        this.registeredCommands.delete(cmdName);
+      }
+    }
+
+    this.plugins.delete(pluginName);
+  }
+
   // Uninstall a plugin
   async uninstallPlugin(pluginName: string): Promise<void> {
     const theme = await getTheme();
     const plugin = this.plugins.get(pluginName);
-    
+
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginName}`);
     }
-    
+
     try {
-      // Deactivate plugin
-      if (plugin.plugin.deactivate) {
-        await plugin.plugin.deactivate();
-      }
-      
-      // Remove registered commands
-      for (const [cmdName, cmd] of this.registeredCommands.entries()) {
-        if (cmd.pluginName === pluginName) {
-          this.registeredCommands.delete(cmdName);
-        }
-      }
-      
-      // Remove from memory
-      this.plugins.delete(pluginName);
-      
+      const pluginPath = plugin.path;
+
+      // Deactivate, remove its commands, and drop it from memory.
+      await this.unloadPlugin(pluginName);
+
       // Remove files
-      await fs.remove(plugin.path);
-      
+      await fs.remove(pluginPath);
+
       console.log(theme.chalk.success(`${neonSymbols.check} Plugin uninstalled: ${pluginName}`));
-      
+
     } catch (error) {
       console.log(theme.chalk.error(`${neonSymbols.cross} Failed to uninstall plugin: ${error instanceof Error ? error.message : 'Unknown error'}`));
       throw error;

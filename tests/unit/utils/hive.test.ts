@@ -64,7 +64,9 @@ describe('HiveClient', () => {
         // @ts-ignore
         findRCAccounts: jest.fn().mockResolvedValue([{
           rc_manabar: {
-            current_mana: '5000000000000'
+            current_mana: '5000000000000',
+            // Far-future timestamp so no regeneration is applied by default.
+            last_update_time: 32503680000
           },
           max_rc: '10000000000000'
         }])
@@ -539,7 +541,8 @@ describe('HiveClient', () => {
     it('should calculate percentage correctly', async () => {
       mockClient.rc.findRCAccounts.mockResolvedValue([{
         rc_manabar: {
-          current_mana: '7500000000000'
+          current_mana: '7500000000000',
+          last_update_time: 32503680000 // far future -> no regeneration
         },
         max_rc: '10000000000000'
       }]);
@@ -547,6 +550,40 @@ describe('HiveClient', () => {
       const result = await hiveClient.getResourceCredits(testAccount);
 
       expect(result.percentage).toBe(75);
+    });
+
+    it('should regenerate mana accrued since last_update_time', async () => {
+      // Manabar was half full five days ago; it fully regenerates over five
+      // days, so it should now read as effectively 100%.
+      const fiveDaysAgo = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 5;
+      mockClient.rc.findRCAccounts.mockResolvedValue([{
+        rc_manabar: {
+          current_mana: '5000000000000',
+          last_update_time: fiveDaysAgo
+        },
+        max_rc: '10000000000000'
+      }]);
+
+      const result = await hiveClient.getResourceCredits(testAccount);
+
+      expect(result.current).toBe(10000000000000);
+      expect(result.percentage).toBe(100);
+    });
+
+    it('should never exceed max_rc when regenerating', async () => {
+      const longAgo = Math.floor(Date.now() / 1000) - 60 * 60 * 24 * 30;
+      mockClient.rc.findRCAccounts.mockResolvedValue([{
+        rc_manabar: {
+          current_mana: '9000000000000',
+          last_update_time: longAgo
+        },
+        max_rc: '10000000000000'
+      }]);
+
+      const result = await hiveClient.getResourceCredits(testAccount);
+
+      expect(result.current).toBe(10000000000000);
+      expect(result.percentage).toBe(100);
     });
 
     it('should handle RC API errors', async () => {

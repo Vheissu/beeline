@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import { PrivateKey, cryptoUtils } from '@hiveio/dhive';
+import { PrivateKey } from '@hiveio/dhive';
 import * as keytar from 'keytar';
 import * as fs from 'fs-extra';
 import * as path from 'path';

@@ -571,10 +571,7 @@ export default class History extends Command {
     };
     
     let currentFilter: TransactionFilter = { types: transactionGroups.monetary };
-    let transactions: HiveTransaction[] = [];
-    let currentPage = 0;
-    const pageSize = 20;
-    
+
     // Initial load
     console.log(theme.chalk.glow(`${neonSymbols.diamond} Welcome to Interactive Transaction History for ${theme.chalk.highlight('@' + account)}`));
     await this.loadTransactions(hiveClient, account, currentFilter, theme);

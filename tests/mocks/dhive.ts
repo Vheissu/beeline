@@ -36,7 +36,10 @@ export const mockClient = {
   rc: {
     findRCAccounts: jest.fn().mockResolvedValue([{
       rc_manabar: {
-        current_mana: '5000000000000'
+        current_mana: '5000000000000',
+        // Far-future timestamp so getResourceCredits adds no regeneration and
+        // the manabar value is returned verbatim in tests.
+        last_update_time: 32503680000
       },
       max_rc: '10000000000000'
     }])

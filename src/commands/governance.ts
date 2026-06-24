@@ -378,14 +378,23 @@ ${status.witnessVotes.map(w => neonChalk.white(`  • ${w}`)).join('\n')}
   }
 
   private formatVotes(votes: string): string {
-    const voteCount = parseInt(votes);
-    if (voteCount >= 1000000000) {
-      return `${(voteCount / 1000000000).toFixed(1)}B votes`;
-    } else if (voteCount >= 1000000) {
-      return `${(voteCount / 1000000).toFixed(1)}M votes`;
-    } else if (voteCount >= 1000) {
-      return `${(voteCount / 1000).toFixed(1)}K votes`;
+    // Witness vote totals are raw VESTS sums that far exceed
+    // Number.MAX_SAFE_INTEGER. Parse as BigInt so the magnitude is exact, then
+    // scale down once we are safely within a few significant figures.
+    let voteCount: bigint;
+    try {
+      voteCount = BigInt(String(votes).split('.')[0] || '0');
+    } catch {
+      voteCount = 0n;
     }
+    const scale = (divisor: bigint, suffix: string): string => {
+      // One decimal place, computed in BigInt space to avoid float drift.
+      const tenths = (voteCount * 10n) / divisor;
+      return `${tenths / 10n}.${tenths % 10n}${suffix} votes`;
+    };
+    if (voteCount >= 1_000_000_000n) return scale(1_000_000_000n, 'B');
+    if (voteCount >= 1_000_000n) return scale(1_000_000n, 'M');
+    if (voteCount >= 1_000n) return scale(1_000n, 'K');
     return `${voteCount} votes`;
   }
 

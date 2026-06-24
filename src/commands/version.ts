@@ -1,5 +1,5 @@
 import { Command } from '@oclif/core';
-import { getTheme, neonSymbols, getCurrentThemeName, playMatrixRain } from '../utils/neon.js';
+import { getTheme, neonSymbols } from '../utils/neon.js';
 
 export default class Version extends Command {
   static override description = 'Display version information with neon flair';

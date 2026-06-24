@@ -1,4 +1,4 @@
-import { Command, Flags, Args } from '@oclif/core';
+import { Command, Args } from '@oclif/core';
 import { 
   setTheme, 
   getTheme, 
